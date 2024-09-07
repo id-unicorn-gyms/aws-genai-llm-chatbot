@@ -177,7 +177,6 @@ export class Models extends Construct {
           },
         }
       );
-
       this.suppressCdkNagWarningForEndpointRole(mistral7BInstruct2.role);
 
       models.push({
@@ -343,6 +342,42 @@ export class Models extends Construct {
       models.push({
         name: LLAMA3_1_8B_INSTRUCT_ENDPOINT_NAME,
         endpoint: llama3_1_8b_instruct.cfnEndpoint,
+        responseStreamingSupported: false,
+        inputModalities: [Modality.Text],
+        outputModalities: [Modality.Text],
+        interface: ModelInterface.LangChain,
+        ragSupported: true,
+      });
+    }
+
+    if (
+      props.config.llms?.sagemaker.includes(
+        SupportedSageMakerModels.Qwen2_7B_Instruct
+      )
+    ) {
+      const QWEN2_7B_INSTRUCT_ENDPOINT_NAME = "Qwen/Qwen2-7B-Instruct";
+
+      const qwen27BInstruct = new JumpStartSageMakerEndpoint(
+        this,
+        "Qwen2_7b_Instruct",
+        {
+          model: JumpStartModel.HUGGINGFACE_LLM_QWEN2_7B_INSTRUCT_1_0_0,
+          instanceType: SageMakerInstanceType.ML_G5_4XLARGE,
+          vpcConfig: {
+            securityGroupIds: [props.shared.vpc.vpcDefaultSecurityGroup],
+            subnets: props.shared.vpc.privateSubnets.map(
+              (subnet) => subnet.subnetId
+            ),
+          },
+          endpointName: "Qwen2-7B-Instruct",
+        }
+      );
+
+      this.suppressCdkNagWarningForEndpointRole(qwen27BInstruct.role);
+
+      models.push({
+        name: QWEN2_7B_INSTRUCT_ENDPOINT_NAME,
+        endpoint: qwen27BInstruct.cfnEndpoint,
         responseStreamingSupported: false,
         inputModalities: [Modality.Text],
         outputModalities: [Modality.Text],
