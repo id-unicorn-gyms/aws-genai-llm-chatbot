@@ -7,6 +7,7 @@ export enum SupportedSageMakerModels {
   Idefics_9b = "Idefics_9b (Multimodal) [ml.g5.12xlarge]",
   Idefics_80b = "Idefics_80b (Multimodal) [ml.g5.48xlarge]",
   Llama2_13b_Chat = "Llama2_13b_Chat [ml.g5.12xlarge]",
+  Llama3_1_8B_Instruct = "Llama3.1_8b_Instruct [ml.g5.4xlarge]",
   Mistral7b_Instruct = "Mistral7b_Instruct 0.1 [ml.g5.2xlarge]",
   Mistral7b_Instruct2 = "Mistral7b_Instruct 0.2 [ml.g5.2xlarge]",
   Mistral7b_Instruct3 = "Mistral7b_Instruct 0.3 [ml.g5.2xlarge]",

@@ -280,7 +280,6 @@ export class Models extends Construct {
         ragSupported: true,
       });
     }
-
     if (
       props.config.llms?.sagemaker.includes(
         SupportedSageMakerModels.Llama2_13b_Chat
@@ -309,6 +308,41 @@ export class Models extends Construct {
       models.push({
         name: LLAMA2_13B_CHAT_ENDPOINT_NAME,
         endpoint: llama2_13b_chat.cfnEndpoint,
+        responseStreamingSupported: false,
+        inputModalities: [Modality.Text],
+        outputModalities: [Modality.Text],
+        interface: ModelInterface.LangChain,
+        ragSupported: true,
+      });
+    }
+    if (
+      props.config.llms?.sagemaker.includes(
+        SupportedSageMakerModels.Llama3_1_8B_Instruct
+      )
+    ) {
+      const LLAMA3_1_8B_INSTRUCT_ENDPOINT_NAME = "meta-LLama3.1-8b-instruct";
+
+      const llama3_1_8b_instruct = new JumpStartSageMakerEndpoint(
+        this,
+        "LLamaV3_1_8B_Instruct",
+        {
+          model: JumpStartModel.META_TEXTGENERATION_LLAMA_3_1_8B_INSTRUCT_2_1_0,
+          instanceType: SageMakerInstanceType.ML_G5_4XLARGE,
+          vpcConfig: {
+            securityGroupIds: [props.shared.vpc.vpcDefaultSecurityGroup],
+            subnets: props.shared.vpc.privateSubnets.map(
+              (subnet) => subnet.subnetId
+            ),
+          },
+          endpointName: LLAMA3_1_8B_INSTRUCT_ENDPOINT_NAME,
+        }
+      );
+
+      this.suppressCdkNagWarningForEndpointRole(llama3_1_8b_instruct.role);
+
+      models.push({
+        name: LLAMA3_1_8B_INSTRUCT_ENDPOINT_NAME,
+        endpoint: llama3_1_8b_instruct.cfnEndpoint,
         responseStreamingSupported: false,
         inputModalities: [Modality.Text],
         outputModalities: [Modality.Text],
