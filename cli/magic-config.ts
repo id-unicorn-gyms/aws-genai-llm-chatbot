@@ -125,6 +125,11 @@ const embeddingModels = [
     name: "text-embedding-ada-002",
     dimensions: 1536,
   },
+  {
+    provider: "bedrock",
+    name: "amazon.titan-embed-text-v2:0",
+    dimensions: 1024,
+  },
 ];
 
 /**
