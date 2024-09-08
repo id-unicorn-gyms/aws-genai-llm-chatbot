@@ -334,6 +334,7 @@ export class Models extends Construct {
             ),
           },
           endpointName: LLAMA3_1_8B_INSTRUCT_ENDPOINT_NAME,
+          acceptEula: true,
         }
       );
 
@@ -370,6 +371,7 @@ export class Models extends Construct {
             ),
           },
           endpointName: LLAMA3_1_70B_INSTRUCT_ENDPOINT_NAME,
+          acceptEula: true,
         }
       );
 
