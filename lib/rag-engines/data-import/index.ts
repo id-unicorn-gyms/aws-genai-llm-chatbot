@@ -78,7 +78,7 @@ export class DataImport extends Construct {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
-      transferAcceleration: true,
+      // transferAcceleration: true,
       enforceSSL: true,
       serverAccessLogsBucket: uploadLogsBucket,
       cors: [
@@ -86,7 +86,7 @@ export class DataImport extends Construct {
           allowedHeaders: ["*"],
           allowedMethods: [
             s3.HttpMethods.PUT,
-            s3.HttpMethods.POST,
+            // s3.HttpMethods.POST,
             s3.HttpMethods.GET,
             s3.HttpMethods.HEAD,
           ],
