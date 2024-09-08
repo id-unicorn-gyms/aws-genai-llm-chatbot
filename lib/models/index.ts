@@ -513,6 +513,52 @@ export class Models extends Construct {
       });
     }
 
+    if (
+      props.config.llms?.sagemaker.includes(
+        SupportedSageMakerModels.SeaLLMs_v3_7B_Chat
+      )
+    ) {
+      const SEALLMS_v3_7B_CHAT_MODEL_ID = "SeaLLMs/SeaLLMs-v3-7B-Chat";
+      const SEALLMS_v3_7B_CHAT_ENDPOINT_NAME =
+        SEALLMS_v3_7B_CHAT_MODEL_ID.split("/").join("-").split(".").join("-");
+
+      const seaLLMsV37bChat = new HuggingFaceSageMakerEndpoint(
+        this,
+        "seaLLMsV37bChat",
+        {
+          modelId: SEALLMS_v3_7B_CHAT_MODEL_ID,
+          vpcConfig: {
+            securityGroupIds: [props.shared.vpc.vpcDefaultSecurityGroup],
+            subnets: props.shared.vpc.privateSubnets.map(
+              (subnet) => subnet.subnetId
+            ),
+          },
+          container:
+            DeepLearningContainerImage.HUGGINGFACE_PYTORCH_TGI_INFERENCE_2_3_0_TGI2_2_0_GPU_PY310_CU121_UBUNTU22_04,
+          instanceType: SageMakerInstanceType.ML_G5_2XLARGE,
+          startupHealthCheckTimeoutInSeconds: 300,
+          endpointName: SEALLMS_v3_7B_CHAT_ENDPOINT_NAME,
+          environment: {
+            HF_TOKEN:
+              hfTokenSecret?.secretValue.unsafeUnwrap().toString() || "",
+            SM_NUM_GPUS: JSON.stringify(1),
+          },
+        }
+      );
+
+      this.suppressCdkNagWarningForEndpointRole(seaLLMsV37bChat.role);
+
+      models.push({
+        name: SEALLMS_v3_7B_CHAT_ENDPOINT_NAME!,
+        endpoint: seaLLMsV37bChat.cfnEndpoint,
+        responseStreamingSupported: false,
+        inputModalities: [Modality.Text],
+        outputModalities: [Modality.Text],
+        interface: ModelInterface.LangChain,
+        ragSupported: true,
+      });
+    }
+
     const modelsParameter = new ssm.StringParameter(this, "ModelsParameter", {
       stringValue: JSON.stringify(
         models.map((model) => ({
