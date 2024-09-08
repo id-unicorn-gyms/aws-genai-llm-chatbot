@@ -319,7 +319,7 @@ export class Models extends Construct {
         SupportedSageMakerModels.Llama3_1_8B_Instruct
       )
     ) {
-      const LLAMA3_1_8B_INSTRUCT_ENDPOINT_NAME = "meta-LLama3.1-8b-instruct";
+      const LLAMA3_1_8B_INSTRUCT_ENDPOINT_NAME = "meta-LLama3-1-8b-instruct";
 
       const llama3_1_8b_instruct = new JumpStartSageMakerEndpoint(
         this,
@@ -355,7 +355,7 @@ export class Models extends Construct {
         SupportedSageMakerModels.Llama3_1_70B_Instruct
       )
     ) {
-      const LLAMA3_1_70B_INSTRUCT_ENDPOINT_NAME = "meta-LLama3.1-70b-instruct";
+      const LLAMA3_1_70B_INSTRUCT_ENDPOINT_NAME = "meta-LLama3-1-70b-instruct";
 
       const llama3_1_70b_instruct = new JumpStartSageMakerEndpoint(
         this,
@@ -393,7 +393,7 @@ export class Models extends Construct {
         SupportedSageMakerModels.Qwen2_7B_Instruct
       )
     ) {
-      const QWEN2_7B_INSTRUCT_ENDPOINT_NAME = "Qwen/Qwen2-7B-Instruct";
+      const QWEN2_7B_INSTRUCT_ENDPOINT_NAME = "Qwen2-7B-Instruct";
 
       const qwen27BInstruct = new JumpStartSageMakerEndpoint(
         this,
@@ -407,7 +407,7 @@ export class Models extends Construct {
               (subnet) => subnet.subnetId
             ),
           },
-          endpointName: "Qwen2-7B-Instruct",
+          endpointName: QWEN2_7B_INSTRUCT_ENDPOINT_NAME,
         }
       );
 
