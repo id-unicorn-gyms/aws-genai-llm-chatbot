@@ -12,7 +12,7 @@ import { SharedAssetBundler } from "./shared-asset-bundler";
 import { NagSuppressions } from "cdk-nag";
 
 const pythonRuntime = lambda.Runtime.PYTHON_3_11;
-const lambdaArchitecture = lambda.Architecture.X86_64;
+const lambdaArchitecture = lambda.Architecture.ARM_64;
 process.env.DOCKER_DEFAULT_PLATFORM = lambdaArchitecture.dockerPlatform;
 
 export interface SharedProps {
@@ -35,7 +35,7 @@ export class Shared extends Construct {
   constructor(scope: Construct, id: string, props: SharedProps) {
     super(scope, id);
 
-    const powerToolsLayerVersion = "46";
+    const powerToolsLayerVersion = "79";
 
     this.defaultEnvironmentVariables = {
       POWERTOOLS_DEV: "false",
@@ -145,28 +145,74 @@ export class Shared extends Construct {
         });
 
         // Create VPC Endpoint for Bedrock
-        if (
-          props.config.bedrock?.enabled &&
-          Object.values(SupportedBedrockRegion).some(
-            (val) => val === cdk.Stack.of(this).region
-          )
-        ) {
-          if (props.config.bedrock?.region !== cdk.Stack.of(this).region) {
-            throw new Error(
-              `Bedrock is only supported in the same region as the stack when using private website (Bedrock region: ${props
-                .config.bedrock?.region}, Stack region: ${
-                cdk.Stack.of(this).region
-              }).`
-            );
+        if (props.config.bedrock?.enabled) {
+          const bedrockRegion =
+            props.config.bedrock?.region || cdk.Stack.of(this).region;
+          if (
+            Object.values(SupportedBedrockRegion).some(
+              (val) => val === bedrockRegion
+            )
+          ) {
+            if (bedrockRegion === cdk.Stack.of(this).region) {
+              vpc.addInterfaceEndpoint("BedrockEndpoint", {
+                service: ec2.InterfaceVpcEndpointAwsService.BEDROCK,
+              });
+              vpc.addInterfaceEndpoint("BedrockRuntimeEndpoint", {
+                service: ec2.InterfaceVpcEndpointAwsService.BEDROCK_RUNTIME,
+              });
+            } else {
+              const bedrockVpc = new ec2.Vpc(this, "BedrockVPC", {
+                natGateways: 0,
+                restrictDefaultSecurityGroup: false,
+                subnetConfiguration: [
+                  {
+                    name: "isolated",
+                    subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
+                  },
+                ],
+              });
+              const vpcPeering = new ec2.CfnVPCPeeringConnection(
+                this,
+                "BrVPCPeering",
+                {
+                  vpcId: vpc.vpcId,
+                  peerVpcId: bedrockVpc.vpcId,
+                }
+              );
+              vpc.privateSubnets.forEach(
+                ({ routeTable: { routeTableId } }, index) => {
+                  new ec2.CfnRoute(
+                    this,
+                    "RouteFromPvtSubnetOfVpcToBrVpc" + index,
+                    {
+                      destinationCidrBlock: bedrockVpc.vpcCidrBlock,
+                      routeTableId: routeTableId,
+                      vpcPeeringConnectionId: vpcPeering.ref,
+                    }
+                  );
+                }
+              );
+              bedrockVpc.isolatedSubnets.forEach(
+                ({ routeTable: { routeTableId } }, index) => {
+                  new ec2.CfnRoute(
+                    this,
+                    "RouteFromIsoSubnetOfBrVpcToVpc" + index,
+                    {
+                      destinationCidrBlock: vpc.vpcCidrBlock,
+                      routeTableId: routeTableId,
+                      vpcPeeringConnectionId: vpcPeering.ref,
+                    }
+                  );
+                }
+              );
+              bedrockVpc.addInterfaceEndpoint("BedrockEndpoint", {
+                service: ec2.InterfaceVpcEndpointAwsService.BEDROCK,
+              });
+              bedrockVpc.addInterfaceEndpoint("BedrockRuntimeEndpoint", {
+                service: ec2.InterfaceVpcEndpointAwsService.BEDROCK_RUNTIME,
+              });
+            }
           }
-
-          vpc.addInterfaceEndpoint("BedrockEndpoint", {
-            service: ec2.InterfaceVpcEndpointAwsService.BEDROCK,
-          });
-
-          vpc.addInterfaceEndpoint("BedrockRuntimeEndpoint", {
-            service: ec2.InterfaceVpcEndpointAwsService.BEDROCK_RUNTIME,
-          });
         }
 
         // Create VPC Endpoint for Kendra
