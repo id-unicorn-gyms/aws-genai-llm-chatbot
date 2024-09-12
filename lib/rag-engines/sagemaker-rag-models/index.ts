@@ -35,7 +35,8 @@ export class SageMakerRagModels extends Construct {
           ...sageMakerCrossEncoderModelIds,
         ],
         codeFolder: path.join(__dirname, "./model"),
-        instanceType: "ml.g4dn.xlarge",
+        // instanceType: "ml.g4dn.xlarge",
+        instanceType: "ml.g5.xlarge",
       },
     });
 
