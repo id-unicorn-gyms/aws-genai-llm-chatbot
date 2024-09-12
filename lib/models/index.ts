@@ -320,7 +320,6 @@ export class Models extends Construct {
       )
     ) {
       const LLAMA3_1_8B_INSTRUCT_ENDPOINT_NAME = "meta-LLama3-1-8b-instruct";
-
       const llama3_1_8b_instruct = new JumpStartSageMakerEndpoint(
         this,
         "LLamaV3_1_8B_Instruct",
@@ -332,6 +331,9 @@ export class Models extends Construct {
             subnets: props.shared.vpc.privateSubnets.map(
               (subnet) => subnet.subnetId
             ),
+          },
+          environment: {
+            SAGEMAKER_CONTAINER_LOG_LEVEL: JSON.stringify(10),
           },
           endpointName: LLAMA3_1_8B_INSTRUCT_ENDPOINT_NAME,
           acceptEula: true,
