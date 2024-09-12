@@ -38,18 +38,17 @@ export class PublicWebsite extends Construct {
     const cfGeoRestrictEnable = props.config.cfGeoRestrictEnable;
     const cfGeoRestrictList = props.config.cfGeoRestrictList;
 
-    const distributionLogsBucket = new s3.Bucket(
-      this,
-      "DistributionLogsBucket",
-      {
-        objectOwnership: s3.ObjectOwnership.OBJECT_WRITER,
-        blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-        removalPolicy: cdk.RemovalPolicy.DESTROY,
-        autoDeleteObjects: true,
-        enforceSSL: true,
-      }
-    );
-
+    // const distributionLogsBucket = new s3.Bucket(
+    //   this,
+    //   "DistributionLogsBucket",
+    //   {
+    //     objectOwnership: s3.ObjectOwnership.OBJECT_WRITER,
+    //     blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+    //     removalPolicy: cdk.RemovalPolicy.DESTROY,
+    //     autoDeleteObjects: true,
+    //     enforceSSL: true,
+    //   }
+    // );
     const distribution = new cf.CloudFrontWebDistribution(
       this,
       "Distribution",
@@ -77,9 +76,9 @@ export class PublicWebsite extends Construct {
         viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         priceClass: cf.PriceClass.PRICE_CLASS_ALL,
         httpVersion: cf.HttpVersion.HTTP2_AND_3,
-        loggingConfig: {
-          bucket: distributionLogsBucket,
-        },
+        // loggingConfig: {
+        //   bucket: distributionLogsBucket,
+        // },
         originConfigs: [
           {
             behaviors: [{ isDefaultBehavior: true }],
@@ -138,12 +137,12 @@ export class PublicWebsite extends Construct {
       value: `https://${distribution.distributionDomainName}`,
     });
 
-    NagSuppressions.addResourceSuppressions(distributionLogsBucket, [
-      {
-        id: "AwsSolutions-S1",
-        reason: "Bucket is the server access logs bucket for websiteBucket.",
-      },
-    ]);
+    // NagSuppressions.addResourceSuppressions(distributionLogsBucket, [
+    //   {
+    //     id: "AwsSolutions-S1",
+    //     reason: "Bucket is the server access logs bucket for websiteBucket.",
+    //   },
+    // ]);
 
     NagSuppressions.addResourceSuppressions(props.websiteBucket, [
       { id: "AwsSolutions-S5", reason: "OAI is configured for read." },
@@ -154,6 +153,11 @@ export class PublicWebsite extends Construct {
       {
         id: "AwsSolutions-CFR2",
         reason: "WAF not required due to configured Cognito auth.",
+      },
+      {
+        id: "AwsSolutions-CFR3",
+        reason:
+          "Temporarily disable access logging. this should be created in us-east-1",
       },
       { id: "AwsSolutions-CFR4", reason: "TLS 1.2 is the default." },
     ]);
