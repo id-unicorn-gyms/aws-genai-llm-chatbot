@@ -42,14 +42,16 @@ class Llama3InstructContentHandler(LLMContentHandler):
         return input_str.encode("utf-8")
 
     def transform_output(self, output: bytes):
-        response_json = json.loads(output.read().decode("utf-8"))
+        output_str = output.read().decode("utf-8")
+        print(output_str)
+        response_json = json.loads(output_str)
         return response_json[0]["generation"]["content"]
 
 
 content_handler = Llama3InstructContentHandler()
 
 
-class SMLlama3InstructAdapter(ModelAdapter):
+class SMJumpstartLlama3InstructAdapter(ModelAdapter):
     def __init__(self, model_id, **kwargs):
         self.model_id = model_id
 
@@ -92,4 +94,4 @@ class SMLlama3InstructAdapter(ModelAdapter):
 
 
 # Register the adapter
-registry.register(r"(?i)sagemaker\.meta-LLama3-1.*\d+b.*instruct.*", SMLlama3InstructAdapter)
+registry.register(r"(?i)sagemaker\.meta-LLama3-1.*\d+b.*instruct.*", SMJumpstartLlama3InstructAdapter)
