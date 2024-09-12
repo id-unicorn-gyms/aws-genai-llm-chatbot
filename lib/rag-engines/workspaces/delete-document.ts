@@ -14,6 +14,7 @@ import { KendraRetrieval } from "../kendra-retrieval";
 import { OpenSearchVector } from "../opensearch-vector";
 import { RagDynamoDBTables } from "../rag-dynamodb-tables";
 import { RemovalPolicy } from "aws-cdk-lib";
+import {generatePhysicalNameV2} from "@cdklabs/generative-ai-cdk-constructs/lib/common/helpers/utils";
 
 export interface DeleteDocumentProps {
   readonly config: SystemConfig;
@@ -158,9 +159,13 @@ export class DeleteDocument extends Construct {
     const workflow = setDeleting
       .next(deleteTask)
       .next(new sfn.Succeed(this, "Success"));
-
     const logGroup = new logs.LogGroup(this, "DeleteDocumentSMLogGroup", {
       removalPolicy: RemovalPolicy.DESTROY,
+      logGroupName: generatePhysicalNameV2(
+        this,
+        "/aws/vendedlogs/states/constructs/DeleteDocument",
+        { maxLength: 255 }
+      ),
     });
 
     const stateMachine = new sfn.StateMachine(this, "DeleteDocument", {

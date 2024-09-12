@@ -9,6 +9,7 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as tasks from "aws-cdk-lib/aws-stepfunctions-tasks";
 import * as logs from "aws-cdk-lib/aws-logs";
 import { RemovalPolicy } from "aws-cdk-lib";
+import { generatePhysicalNameV2 } from "@cdklabs/generative-ai-cdk-constructs/lib/common/helpers/utils";
 
 export interface WebsiteCrawlingWorkflowProps {
   readonly config: SystemConfig;
@@ -129,6 +130,11 @@ export class WebsiteCrawlingWorkflow extends Construct {
     });
     const logGroup = new logs.LogGroup(this, "WebsiteCrawlingSMLogGroup", {
       removalPolicy: RemovalPolicy.DESTROY,
+      logGroupName: generatePhysicalNameV2(
+        this,
+        "/aws/vendedlogs/states/constructs/WebsiteCrawling",
+        { maxLength: 255 }
+      ),
     });
 
     const workflow = setProcessing.next(webCrawlerJob).next(setProcessed);

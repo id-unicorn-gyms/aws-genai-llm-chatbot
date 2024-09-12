@@ -7,6 +7,7 @@ import * as sfn from "aws-cdk-lib/aws-stepfunctions";
 import * as tasks from "aws-cdk-lib/aws-stepfunctions-tasks";
 import * as logs from "aws-cdk-lib/aws-logs";
 import { RemovalPolicy } from "aws-cdk-lib";
+import { generatePhysicalNameV2 } from "@cdklabs/generative-ai-cdk-constructs/lib/common/helpers/utils";
 
 export interface CreateKendraWorkspaceProps {
   readonly config: SystemConfig;
@@ -86,6 +87,11 @@ export class CreateKendraWorkspace extends Construct {
       "CreateKendraWorkspaceSMLogGroup",
       {
         removalPolicy: RemovalPolicy.DESTROY,
+        logGroupName: generatePhysicalNameV2(
+          this,
+          "/aws/vendedlogs/states/constructs/CreateKendraWorkspace",
+          { maxLength: 255 }
+        ),
       }
     );
 

@@ -14,6 +14,7 @@ import { KendraRetrieval } from "../kendra-retrieval";
 import { OpenSearchVector } from "../opensearch-vector";
 import { RagDynamoDBTables } from "../rag-dynamodb-tables";
 import { RemovalPolicy } from "aws-cdk-lib";
+import { generatePhysicalNameV2 } from "@cdklabs/generative-ai-cdk-constructs/lib/common/helpers/utils";
 
 export interface DeleteWorkspaceProps {
   readonly config: SystemConfig;
@@ -163,6 +164,11 @@ export class DeleteWorkspace extends Construct {
 
     const logGroup = new logs.LogGroup(this, "DeleteWorkspaceSMLogGroup", {
       removalPolicy: RemovalPolicy.DESTROY,
+      logGroupName: generatePhysicalNameV2(
+        this,
+        "/aws/vendedlogs/states/constructs/DeleteWorkspace",
+        { maxLength: 255 }
+      ),
     });
 
     const stateMachine = new sfn.StateMachine(this, "DeleteWorkspace", {

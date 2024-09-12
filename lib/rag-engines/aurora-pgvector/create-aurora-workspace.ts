@@ -10,6 +10,7 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as rds from "aws-cdk-lib/aws-rds";
 import { RemovalPolicy } from "aws-cdk-lib";
+import { generatePhysicalNameV2 } from "@cdklabs/generative-ai-cdk-constructs/lib/common/helpers/utils";
 
 export interface CreateAuroraWorkspaceProps {
   readonly config: SystemConfig;
@@ -130,6 +131,11 @@ export class CreateAuroraWorkspace extends Construct {
       "CreateAuroraWorkspaceSMLogGroup",
       {
         removalPolicy: RemovalPolicy.DESTROY,
+        logGroupName: generatePhysicalNameV2(
+          this,
+          "/aws/vendedlogs/states/constructs/CreateAuroraWorkspace",
+          { maxLength: 255 }
+        ),
       }
     );
 

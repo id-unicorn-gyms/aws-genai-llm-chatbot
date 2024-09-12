@@ -9,6 +9,7 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as tasks from "aws-cdk-lib/aws-stepfunctions-tasks";
 import * as logs from "aws-cdk-lib/aws-logs";
 import { RemovalPolicy } from "aws-cdk-lib";
+import { generatePhysicalNameV2 } from "@cdklabs/generative-ai-cdk-constructs/lib/common/helpers/utils";
 
 export interface FileImportWorkflowProps {
   readonly config: SystemConfig;
@@ -108,6 +109,11 @@ export class FileImportWorkflow extends Construct {
 
     const logGroup = new logs.LogGroup(this, "FileImportSMLogGroup", {
       removalPolicy: RemovalPolicy.DESTROY,
+      logGroupName: generatePhysicalNameV2(
+        this,
+        "/aws/vendedlogs/states/constructs/FileImport",
+        { maxLength: 255 }
+      ),
     });
 
     const workflow = setProcessing.next(fileImportJob).next(setProcessed);

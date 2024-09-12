@@ -11,6 +11,7 @@ import { Shared } from "../../shared";
 import { SystemConfig } from "../../shared/types";
 import { RagDynamoDBTables } from "../rag-dynamodb-tables";
 import { RemovalPolicy } from "aws-cdk-lib";
+import { generatePhysicalNameV2 } from "@cdklabs/generative-ai-cdk-constructs/lib/common/helpers/utils";
 
 export interface CreateOpenSearchWorkspaceProps {
   readonly config: SystemConfig;
@@ -148,6 +149,11 @@ export class CreateOpenSearchWorkspace extends Construct {
       "CreateOpenSearchWorkspaceSMLogGroup",
       {
         removalPolicy: RemovalPolicy.DESTROY,
+        logGroupName: generatePhysicalNameV2(
+          this,
+          "/aws/vendedlogs/states/constructs/CreateOpenSearchWorkspace",
+          { maxLength: 255 }
+        ),
       }
     );
 
