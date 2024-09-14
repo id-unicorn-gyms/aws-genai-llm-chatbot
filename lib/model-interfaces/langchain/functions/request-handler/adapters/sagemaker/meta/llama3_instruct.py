@@ -31,21 +31,18 @@ class Llama3InstructContentHandler(LLMContentHandler):
         prompt = self.clean_prompt(prompt)
         input_str = json.dumps(
             {
-                "inputs": [
-                    [
-                        {"role": "user", "content": prompt},
-                    ],
-                ],
+                "inputs": prompt,
                 "parameters": model_kwargs,
             }
         )
+        print(f"input: {input_str}")
         return input_str.encode("utf-8")
 
     def transform_output(self, output: bytes):
         output_str = output.read().decode("utf-8")
         print(output_str)
         response_json = json.loads(output_str)
-        return response_json[0]["generation"]["content"]
+        return response_json["generated_text"]
 
 
 content_handler = Llama3InstructContentHandler()
