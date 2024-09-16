@@ -49,9 +49,10 @@ def query_workspace_aurora(
         selected_model, [query], Task.RETRIEVE
     )[0]
 
+    # TODO: currently set workaround so it's not always calling comprehend
     language_name, detected_languages = genai_core.utils.comprehend.get_query_language(
         query, languages
-    )
+    ) if hybrid_search else ("en", [{ "code": "en", "score": 1}])
 
     items = []
     vector_search_records = []
