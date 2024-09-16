@@ -1,11 +1,13 @@
 from aws_lambda_powertools import Logger
 import boto3
+from botocore.config import Config
+import os
 
 logger = Logger()
+s3_client = boto3.client("s3", region_name = os.environ['AWS_REGION'], config = Config(signature_version = 's3v4', s3={'addressing_style': 'virtual'}))
 
 
 def delete_files_with_prefix(bucket_name, prefix):
-    s3_client = boto3.client("s3")
     continuation_token = None
 
     while True:
