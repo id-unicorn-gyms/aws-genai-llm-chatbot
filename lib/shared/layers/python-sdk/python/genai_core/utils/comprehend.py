@@ -1,7 +1,8 @@
 import boto3
 from typing import Optional, List
 
-comprehend = boto3.client("comprehend")
+# TODO: currently, region is hardcoded.
+comprehend = boto3.client("comprehend", region_name = 'us-east-1')
 
 aws_to_pg = {
     # Afrikaans closely related to Dutch. Might not be accurate. Better than nothing.
