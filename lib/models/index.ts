@@ -563,6 +563,52 @@ export class Models extends Construct {
       });
     }
 
+    if (
+      props.config.llms?.sagemaker.includes(
+        SupportedSageMakerModels.Qwen2_5_7B_Instruct
+      )
+    ) {
+      const QWEN2_5_7B_INSTRUCT_MODEL_ID = "Qwen/Qwen2.5-7B-Instruct";
+      const QWEN2_5_7B_INSTRUCT_ENDPOINT_NAME =
+        QWEN2_5_7B_INSTRUCT_MODEL_ID.split("/").join("-").split(".").join("-");
+
+      const qwen257bInstruct = new HuggingFaceSageMakerEndpoint(
+        this,
+        "qwen257bInstruct",
+        {
+          modelId: QWEN2_5_7B_INSTRUCT_MODEL_ID,
+          vpcConfig: {
+            securityGroupIds: [props.shared.vpc.vpcDefaultSecurityGroup],
+            subnets: props.shared.vpc.privateSubnets.map(
+              (subnet) => subnet.subnetId
+            ),
+          },
+          container:
+            DeepLearningContainerImage.HUGGINGFACE_PYTORCH_TGI_INFERENCE_2_3_0_TGI2_2_0_GPU_PY310_CU121_UBUNTU22_04,
+          instanceType: SageMakerInstanceType.ML_G5_2XLARGE,
+          startupHealthCheckTimeoutInSeconds: 300,
+          endpointName: QWEN2_5_7B_INSTRUCT_ENDPOINT_NAME,
+          environment: {
+            HF_TOKEN:
+              hfTokenSecret?.secretValue.unsafeUnwrap().toString() || "",
+            SM_NUM_GPUS: JSON.stringify(1),
+          },
+        }
+      );
+
+      this.suppressCdkNagWarningForEndpointRole(qwen257bInstruct.role);
+
+      models.push({
+        name: QWEN2_5_7B_INSTRUCT_ENDPOINT_NAME!,
+        endpoint: qwen257bInstruct.cfnEndpoint,
+        responseStreamingSupported: false,
+        inputModalities: [Modality.Text],
+        outputModalities: [Modality.Text],
+        interface: ModelInterface.LangChain,
+        ragSupported: true,
+      });
+    }
+
     const modelsParameter = new ssm.StringParameter(this, "ModelsParameter", {
       stringValue: JSON.stringify(
         models.map((model) => ({

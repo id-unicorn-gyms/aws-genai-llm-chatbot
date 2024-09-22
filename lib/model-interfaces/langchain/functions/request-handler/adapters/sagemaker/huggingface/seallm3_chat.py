@@ -115,3 +115,4 @@ class SMSeaLlmChatAdapter(ModelAdapter):
 
 # Register the adapter
 registry.register(r"(?i)sagemaker\.SeaLLMs-*", SMSeaLlmChatAdapter)
+registry.register(r"(?i)sagemaker\.Qwen-Qwen2-5-*", SMSeaLlmChatAdapter)

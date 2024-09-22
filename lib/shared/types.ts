@@ -10,6 +10,7 @@ export enum SupportedSageMakerModels {
   Llama3_1_8B_Instruct = "Llama3.1_8b_Instruct [ml.g5.4xlarge]",
   Llama3_1_70B_Instruct = "Llama3.1_70b_Instruct [ml.g5.48xlarge]",
   Qwen2_7B_Instruct = "Qwen2_7B_Instruct [ml.g5.4xlarge]",
+  Qwen2_5_7B_Instruct = "Qwen2_5_7B_Instruct [ml.g5.4xlarge]",
   SeaLLMs_v3_7B_Chat = "SeaLLMs_v3_7B_Chat [ml.g5.2xlarge]",
   Mistral7b_Instruct = "Mistral7b_Instruct 0.1 [ml.g5.2xlarge]",
   Mistral7b_Instruct2 = "Mistral7b_Instruct 0.2 [ml.g5.2xlarge]",
