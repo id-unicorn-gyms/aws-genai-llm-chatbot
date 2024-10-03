@@ -13,10 +13,12 @@ USE_S3_ACCELERATE_ENDPOINT = os.environ.get("USE_S3_ACCELERATE_ENDPOINT", "false
 
 s3_client = boto3.client(
     "s3",
+    region_name = os.environ['AWS_REGION'],
     config=botocore.config.Config(
         # Presign URLs only work with CMK if sigv4 is used
         # (boto3 default to v2 in some cases)
         signature_version="s3v4",
+        s3={'addressing_style': 'virtual'},
     ),
 )
 
