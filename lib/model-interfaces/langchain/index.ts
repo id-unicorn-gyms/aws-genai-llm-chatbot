@@ -38,7 +38,9 @@ export class LangChainInterface extends Construct {
       description: "Langchain request handler",
       runtime: props.shared.pythonRuntime,
       architecture: props.shared.lambdaArchitecture,
-      tracing: lambda.Tracing.ACTIVE,
+      tracing: props.config.advancedMonitoring
+        ? lambda.Tracing.ACTIVE
+        : lambda.Tracing.DISABLED,
       timeout: cdk.Duration.minutes(15),
       memorySize: 1024,
       logRetention: props.config.logRetention ?? logs.RetentionDays.ONE_WEEK,
@@ -211,6 +213,9 @@ export class LangChainInterface extends Construct {
 
     props.sessionsTable.grantReadWriteData(requestHandler);
     props.messagesTopic.grantPublish(requestHandler);
+    if (props.shared.kmsKey && requestHandler.role) {
+      props.shared.kmsKey.grantEncrypt(requestHandler.role);
+    }
     props.shared.apiKeysSecret.grantRead(requestHandler);
     props.shared.configParameter.grantRead(requestHandler);
 
@@ -233,10 +238,16 @@ export class LangChainInterface extends Construct {
     );
 
     const deadLetterQueue = new sqs.Queue(this, "DLQ", {
+      encryption: props.shared.kmsKey ? sqs.QueueEncryption.KMS : undefined,
+      encryptionMasterKey: props.shared.kmsKey,
       enforceSSL: true,
     });
 
     const queue = new sqs.Queue(this, "LangChainIngestionQueue", {
+      encryption: props.shared.queueKmsKey
+        ? sqs.QueueEncryption.KMS
+        : undefined,
+      encryptionMasterKey: props.shared.queueKmsKey,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       // https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html#events-sqs-queueconfig
       visibilityTimeout: cdk.Duration.minutes(15 * 6),

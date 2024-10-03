@@ -23,6 +23,7 @@ export interface ApiResolversProps {
   readonly userPool: cognito.UserPool;
   readonly sessionsTable: dynamodb.Table;
   readonly byUserIdIndex: string;
+  readonly filesBucket: s3.Bucket;
   readonly userFeedbackBucket: s3.Bucket;
   readonly modelsParameter: ssm.StringParameter;
   readonly models: SageMakerModelEndpoint[];
@@ -51,7 +52,9 @@ export class ApiResolvers extends Construct {
         architecture: props.shared.lambdaArchitecture,
         timeout: cdk.Duration.minutes(10),
         memorySize: 512,
-        tracing: lambda.Tracing.ACTIVE,
+        tracing: props.config.advancedMonitoring
+          ? lambda.Tracing.ACTIVE
+          : lambda.Tracing.DISABLED,
         logRetention: props.config.logRetention ?? logs.RetentionDays.ONE_WEEK,
         loggingFormat: lambda.LoggingFormat.JSON,
         layers: [props.shared.powerToolsLayer, props.shared.commonLayer],
@@ -69,6 +72,7 @@ export class ApiResolvers extends Construct {
           SESSIONS_BY_USER_ID_INDEX_NAME: props.byUserIdIndex,
           USER_FEEDBACK_BUCKET_NAME: props.userFeedbackBucket?.bucketName ?? "",
           UPLOAD_BUCKET_NAME: props.ragEngines?.uploadBucket?.bucketName ?? "",
+          CHATBOT_FILES_BUCKET_NAME: props.filesBucket.bucketName,
           PROCESSING_BUCKET_NAME:
             props.ragEngines?.processingBucket?.bucketName ?? "",
           AURORA_DB_SECRET_ID: props.ragEngines?.auroraPgVector?.database
@@ -296,6 +300,7 @@ export class ApiResolvers extends Construct {
       props.modelsParameter.grantRead(apiHandler);
       props.sessionsTable.grantReadWriteData(apiHandler);
       props.userFeedbackBucket.grantReadWrite(apiHandler);
+      props.filesBucket.grantReadWrite(apiHandler);
       props.ragEngines?.uploadBucket.grantReadWrite(apiHandler);
       props.ragEngines?.processingBucket.grantReadWrite(apiHandler);
 

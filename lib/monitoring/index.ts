@@ -1,6 +1,10 @@
-import { Stack } from "aws-cdk-lib";
+import { Duration, Stack } from "aws-cdk-lib";
 import { IGraphqlApi } from "aws-cdk-lib/aws-appsync";
-import { LogQueryWidget, Metric } from "aws-cdk-lib/aws-cloudwatch";
+import {
+  LogQueryWidget,
+  MathExpression,
+  Metric,
+} from "aws-cdk-lib/aws-cloudwatch";
 import { ITable } from "aws-cdk-lib/aws-dynamodb";
 import { IFunction as ILambdaFunction } from "aws-cdk-lib/aws-lambda";
 import { CfnCollection } from "aws-cdk-lib/aws-opensearchserverless";
@@ -10,15 +14,20 @@ import {
   AxisPosition,
   MonitoringFacade,
   SingleWidgetDashboardSegment,
+  SnsAlarmActionStrategy,
 } from "cdk-monitoring-constructs";
 import { Construct } from "constructs";
 import { CfnIndex } from "aws-cdk-lib/aws-kendra";
 import { IDatabaseCluster } from "aws-cdk-lib/aws-rds";
 import { Queue } from "aws-cdk-lib/aws-sqs";
-import { ILogGroup } from "aws-cdk-lib/aws-logs";
+import { FilterPattern, ILogGroup, MetricFilter } from "aws-cdk-lib/aws-logs";
+import { IDistribution } from "aws-cdk-lib/aws-cloudfront";
+import { ITopic, Topic } from "aws-cdk-lib/aws-sns";
+import { NagSuppressions } from "cdk-nag";
 
 export interface MonitoringProps {
   prefix: string;
+  advancedMonitoring: boolean;
   appsycnApi: IGraphqlApi;
   appsyncResolversLogGroups: ILogGroup[];
   llmRequestHandlersLogGroups: ILogGroup[];
@@ -27,13 +36,17 @@ export interface MonitoringProps {
   buckets: Bucket[];
   sqs: Queue[];
   ragFunctionProcessing: ILambdaFunction[];
-  ragStateMachineProcessing: IStateMachine[];
+  ragImportStateMachineProcessing: IStateMachine[];
+  ragEngineStateMachineProcessing: (IStateMachine | undefined)[];
   aurora?: IDatabaseCluster;
   opensearch?: CfnCollection;
   kendra?: CfnIndex;
+  cloudFrontDistribution?: IDistribution;
 }
 
 export class Monitoring extends Construct {
+  public readonly compositeAlarmTopic?: ITopic;
+
   constructor(
     private scope: Construct,
     id: string,
@@ -44,7 +57,11 @@ export class Monitoring extends Construct {
     const monitoring = new MonitoringFacade(
       this,
       props.prefix + "GenAI-Chatbot-Dashboard",
-      {}
+      {
+        metricFactoryDefaults: {
+          period: Duration.minutes(5),
+        },
+      }
     );
 
     const region = Stack.of(scope).region;
@@ -52,6 +69,21 @@ export class Monitoring extends Construct {
     monitoring.addLargeHeader("APIs").monitorAppSyncApi({
       api: props.appsycnApi,
       alarmFriendlyName: "AppSync",
+      ...(props.advancedMonitoring
+        ? {
+            add5XXFaultCountAlarm: {
+              Critical: {
+                // 5 error during the default period
+                maxErrorCount: 5,
+              },
+            },
+            addLatencyP90Alarm: {
+              Critical: {
+                maxLatency: Duration.seconds(3),
+              },
+            },
+          }
+        : {}),
     });
 
     monitoring.addSegment(
@@ -72,6 +104,14 @@ export class Monitoring extends Construct {
       )
     );
 
+    if (props.advancedMonitoring) {
+      this.addMetricFilter(
+        props.prefix + "GenAI",
+        monitoring,
+        props.llmRequestHandlersLogGroups
+      );
+    }
+
     const link = `https://${region}.console.aws.amazon.com/cognito/v2/idp/user-pools/${props.cognito.userPoolId}/users?region=${region}`;
     const title = `Cognito [**UserPool**](${link})`;
     this.addCognitoMetrics(
@@ -80,6 +120,23 @@ export class Monitoring extends Construct {
       props.cognito.clientId,
       title
     );
+
+    if (props.cloudFrontDistribution) {
+      monitoring.addLargeHeader("Front End").monitorCloudFrontDistribution({
+        distribution: props.cloudFrontDistribution,
+        alarmFriendlyName: "CloudFront",
+        ...(props.advancedMonitoring
+          ? {
+              addFault5xxRate: {
+                Critical: {
+                  maxErrorRate: 0.1,
+                },
+              },
+            }
+          : {}),
+      });
+    }
+
     monitoring.addLargeHeader("Storage");
 
     for (const table of props.tables) {
@@ -128,23 +185,151 @@ export class Monitoring extends Construct {
         deadLetterQueue: queue.deadLetterQueue.queue,
         alarmFriendlyName: queue.node.id,
         humanReadableName: queue.node.id,
+        ...(props.advancedMonitoring
+          ? {
+              addDeadLetterQueueMaxSizeAlarm: {
+                Critical: {
+                  // If 5 messages are in the dead letter queue
+                  // if means 5 requests where not processed after retries.
+                  maxMessageCount: 5,
+                },
+              },
+            }
+          : {}),
       });
     }
-    monitoring.addLargeHeader("RAG Processing");
-    for (const fct of props.ragStateMachineProcessing) {
+    monitoring.addLargeHeader("RAG processing (File or website import)");
+    for (const fct of props.ragImportStateMachineProcessing) {
       monitoring.monitorStepFunction({
         stateMachine: fct,
         humanReadableName: fct.node.id,
         alarmFriendlyName: fct.node.id,
+        ...(props.advancedMonitoring
+          ? {
+              addFailedExecutionRateAlarm: {
+                Critical: {
+                  // If 10% of the imports are failing
+                  maxErrorRate: 0.1,
+                },
+              },
+            }
+          : {}),
       });
+    }
+    monitoring.addLargeHeader(
+      "RAG engines management (Create table/index and cleanup)"
+    );
+    for (const fct of props.ragEngineStateMachineProcessing) {
+      if (fct) {
+        monitoring.monitorStepFunction({
+          stateMachine: fct,
+          humanReadableName: fct.node.id,
+          alarmFriendlyName: fct.node.id,
+          ...(props.advancedMonitoring
+            ? {
+                addFailedExecutionCountAlarm: {
+                  Critical: {
+                    // If any process fail, cause an alarm (create an OpenSearch index for example)
+                    maxErrorCount: 0,
+                    datapointsToAlarm: 1,
+                  },
+                },
+              }
+            : {}),
+        });
+      }
     }
     for (const fct of props.ragFunctionProcessing) {
       monitoring.monitorLambdaFunction({
         lambdaFunction: fct,
         humanReadableName: fct.node.id,
         alarmFriendlyName: fct.node.id,
+        ...(props.advancedMonitoring
+          ? {
+              addFaultRateAlarm: {
+                Critical: {
+                  // If 10% of the imports are failing
+                  maxErrorRate: 0.1,
+                },
+              },
+            }
+          : {}),
       });
     }
+
+    if (props.advancedMonitoring) {
+      const onAlarmTopic = new Topic(this, "CompositeAlarmTopic", {
+        displayName: props.prefix + "CompositeAlarmTopic",
+        enforceSSL: true,
+      });
+
+      /**
+       * CDK NAG suppression
+       */
+      NagSuppressions.addResourceSuppressions(onAlarmTopic, [
+        { id: "AwsSolutions-SNS2", reason: "No sensitive data in topic." },
+        { id: "AwsSolutions-SNS3", reason: "No sensitive data in topic." },
+      ]);
+
+      monitoring.createCompositeAlarmUsingDisambiguator("Critical", {
+        disambiguator: "Critical",
+        actionOverride: new SnsAlarmActionStrategy({ onAlarmTopic }),
+      });
+
+      this.compositeAlarmTopic = onAlarmTopic;
+    }
+  }
+
+  private addMetricFilter(
+    namespace: string,
+    monitoring: MonitoringFacade,
+    logGroups: ILogGroup[]
+  ) {
+    for (const logGroupKey in logGroups) {
+      new MetricFilter(this, "UsageFilter" + logGroupKey, {
+        logGroup: logGroups[logGroupKey],
+        metricNamespace: namespace,
+        metricName: "TokenUsage",
+        filterPattern: FilterPattern.stringValue(
+          "$.metric_type",
+          "=",
+          "token_usage"
+        ),
+        metricValue: "$.value",
+        dimensions: {
+          model: "$.model",
+        },
+      });
+    }
+
+    monitoring.monitorCustom({
+      alarmFriendlyName: "TokenUsage",
+      humanReadableName: "Token Usage",
+      metricGroups: [
+        {
+          title: "LLM Usage (Bedrock)",
+          metrics: [
+            {
+              alarmFriendlyName: "TokenUsage",
+              metric: new MathExpression({
+                label: "Tokens",
+                expression: `SEARCH('{${namespace},model} MetricName=TokenUsage', 'Sum', 60)`,
+              }),
+              addAlarm: {},
+            },
+            {
+              alarmFriendlyName: "LLMChains Calls",
+              metric: new MathExpression({
+                label: "Calls",
+                expression: `SEARCH('{${namespace},model} MetricName=TokenUsage', 'SampleCount', 60)`,
+              }),
+              addAlarm: {},
+              position: AxisPosition.RIGHT,
+            },
+          ],
+        },
+      ],
+    });
   }
 
   private addCognitoMetrics(

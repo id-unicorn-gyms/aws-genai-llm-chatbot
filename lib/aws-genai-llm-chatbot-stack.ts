@@ -156,7 +156,6 @@ export class AwsGenAILLMChatbotStack extends cdk.Stack {
       userPoolId: authentication.userPool.userPoolId,
       userPoolClient: authentication.userPoolClient,
       userPoolClientId: authentication.userPoolClient.userPoolClientId,
-      identityPool: authentication.identityPool,
       api: chatBotApi,
       chatbotFilesBucket: chatBotApi.filesBucket,
       crossEncodersEnabled:
@@ -221,8 +220,9 @@ export class AwsGenAILLMChatbotStack extends cdk.Stack {
     }
 
     const monitoringStack = new cdk.NestedStack(this, "MonitoringStack");
-    new Monitoring(monitoringStack, "Monitoring", {
+    const monitoringConstruct = new Monitoring(monitoringStack, "Monitoring", {
       prefix: props.config.prefix,
+      advancedMonitoring: props.config.advancedMonitoring === true,
       appsycnApi: chatBotApi.graphqlApi,
       appsyncResolversLogGroups: chatBotApi.resolvers.map((r) => {
         return LogGroup.fromLogGroupName(
@@ -243,6 +243,7 @@ export class AwsGenAILLMChatbotStack extends cdk.Stack {
             "/aws/lambda/" + (r as lambda.Function).functionName
           );
         }),
+      cloudFrontDistribution: userInterface.cloudFrontDistribution,
       cognito: {
         userPoolId: authentication.userPool.userPoolId,
         clientId: authentication.userPoolClient.userPoolClientId,
@@ -265,17 +266,33 @@ export class AwsGenAILLMChatbotStack extends cdk.Stack {
       ragFunctionProcessing: [
         ...(ragEngines ? [ragEngines.dataImport.rssIngestorFunction] : []),
       ],
-      ragStateMachineProcessing: [
+      ragImportStateMachineProcessing: [
         ...(ragEngines
           ? [
               ragEngines.dataImport.fileImportWorkflow,
               ragEngines.dataImport.websiteCrawlingWorkflow,
+            ]
+          : []),
+      ],
+      ragEngineStateMachineProcessing: [
+        ...(ragEngines
+          ? [
+              ragEngines.auroraPgVector?.createAuroraWorkspaceWorkflow,
+              ragEngines.openSearchVector?.createOpenSearchWorkspaceWorkflow,
+              ragEngines.kendraRetrieval?.createKendraWorkspaceWorkflow,
               ragEngines.deleteDocumentWorkflow,
               ragEngines.deleteWorkspaceWorkflow,
             ]
           : []),
       ],
     });
+
+    if (monitoringConstruct.compositeAlarmTopic) {
+      new cdk.CfnOutput(this, "CompositeAlarmTopicOutput", {
+        key: "CompositeAlarmTopicOutput",
+        value: monitoringConstruct.compositeAlarmTopic.topicName,
+      });
+    }
 
     /**
      * CDK NAG suppression
@@ -295,7 +312,6 @@ export class AwsGenAILLMChatbotStack extends cdk.Stack {
     NagSuppressions.addResourceSuppressionsByPath(
       this,
       [
-        `/${this.stackName}/Authentication/IdentityPool/AuthenticatedRole/DefaultPolicy/Resource`,
         `/${this.stackName}/Authentication/UserPool/smsRole/Resource`,
         `/${this.stackName}/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/DefaultPolicy/Resource`,
         `/${this.stackName}/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource`,
@@ -307,6 +323,7 @@ export class AwsGenAILLMChatbotStack extends cdk.Stack {
         `/${this.stackName}/ChatBotApi/RestApi/GraphQLApiHandler/ServiceRole/Resource`,
         `/${this.stackName}/ChatBotApi/RestApi/GraphQLApiHandler/ServiceRole/DefaultPolicy/Resource`,
         `/${this.stackName}/ChatBotApi/Realtime/Resolvers/lambda-resolver/ServiceRole/Resource`,
+        `/${this.stackName}/ChatBotApi/Realtime/Resolvers/lambda-resolver/ServiceRole/DefaultPolicy/Resource`,
         `/${this.stackName}/ChatBotApi/Realtime/Resolvers/outgoing-message-handler/ServiceRole/Resource`,
         `/${this.stackName}/ChatBotApi/Realtime/Resolvers/outgoing-message-handler/ServiceRole/DefaultPolicy/Resource`,
         `/${this.stackName}/IdeficsInterface/MultiModalInterfaceRequestHandler/ServiceRole/DefaultPolicy/Resource`,
@@ -350,8 +367,7 @@ export class AwsGenAILLMChatbotStack extends cdk.Stack {
       NagSuppressions.addResourceSuppressionsByPath(
         this,
         [
-          `/${this.stackName}/IdeficsInterface/ChatbotFilesPrivateApi/Default/{object}/ANY/Resource`,
-          `/${this.stackName}/IdeficsInterface/ChatbotFilesPrivateApi/Default/{object}/ANY/Resource`,
+          `/${this.stackName}/IdeficsInterface/ChatbotFilesPrivateApi/Default/{folder}/{key}/GET/Resource`,
         ],
         [
           { id: "AwsSolutions-APIG4", reason: "Private API within a VPC." },

@@ -10,7 +10,6 @@ import * as path from "path";
 import { Shared } from "../../shared";
 import { SystemConfig } from "../../shared/types";
 import { RagDynamoDBTables } from "../rag-dynamodb-tables";
-import { RemovalPolicy } from "aws-cdk-lib";
 import { generatePhysicalNameV2 } from "@cdklabs/generative-ai-cdk-constructs/lib/common/helpers/utils";
 
 export interface CreateOpenSearchWorkspaceProps {
@@ -148,7 +147,11 @@ export class CreateOpenSearchWorkspace extends Construct {
       this,
       "CreateOpenSearchWorkspaceSMLogGroup",
       {
-        removalPolicy: RemovalPolicy.DESTROY,
+        removalPolicy:
+          props.config.retainOnDelete === true
+            ? cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE
+            : cdk.RemovalPolicy.DESTROY,
+        retention: props.config.logRetention,
         logGroupName: generatePhysicalNameV2(
           this,
           "/aws/vendedlogs/states/constructs/CreateOpenSearchWorkspace",
@@ -171,6 +174,9 @@ export class CreateOpenSearchWorkspace extends Construct {
         },
       }
     );
+    if (props.shared.kmsKey) {
+      props.shared.kmsKey.grantEncryptDecrypt(stateMachine.role);
+    }
 
     this.stateMachine = stateMachine;
     this.createWorkspaceRole = createFunction.role;

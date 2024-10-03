@@ -77,11 +77,14 @@ export enum Direction {
 
 export interface SystemConfig {
   prefix: string;
+  createCMKs?: boolean;
+  retainOnDelete?: boolean;
   vpc?: {
     vpcId?: string;
     createVpcEndpoints?: boolean;
     vpcDefaultSecurityGroup?: string;
   };
+  advancedMonitoring?: boolean;
   logRetention?: number;
   certificate?: string;
   domain?: string;
