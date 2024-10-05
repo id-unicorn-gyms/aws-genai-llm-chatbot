@@ -2,7 +2,7 @@ import json
 import os
 
 from langchain.llms.sagemaker_endpoint import LLMContentHandler, SagemakerEndpoint
-from langchain.prompts.prompt import PromptTemplate
+from langchain_core.prompts.prompt import PromptTemplate
 
 from ...base import ModelAdapter
 from genai_core.registry import registry

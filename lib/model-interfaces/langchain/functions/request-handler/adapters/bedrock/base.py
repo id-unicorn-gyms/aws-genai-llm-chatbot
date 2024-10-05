@@ -12,7 +12,7 @@ from langchain_core.messages.ai import AIMessage
 from langchain_core.messages.human import HumanMessage
 from langchain_aws import ChatBedrockConverse
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.prompts.prompt import PromptTemplate
+from langchain_core.prompts.prompt import PromptTemplate
 
 logger = Logger()
 
