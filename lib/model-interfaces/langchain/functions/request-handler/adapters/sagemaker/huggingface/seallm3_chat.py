@@ -1,15 +1,18 @@
 import json
 import os
 
+from aws_lambda_powertools import Logger
 from langchain_community.llms.sagemaker_endpoint import (
     LLMContentHandler,
     SagemakerEndpoint,
 )
-from langchain.prompts.prompt import PromptTemplate
+
+from langchain_core.prompts.prompt import PromptTemplate
 
 from ...base import ModelAdapter
 from genai_core.registry import registry
 
+logger = Logger()
 
 SeaLlmChatPrompt = """<|im_start|>system
 You are an helpful assistant that provides accurate and concise answers to user questions with as little sentences as possible and at maximum 3 sentences. You do not repeat yourself. You avoid bulleted list or emojis.
@@ -35,7 +38,6 @@ Chat history:
 
 SeaLlmChatCondensedQAPrompt = """<|im_start|>system
 Given the following conversation and the question at the end, rephrase the follow up input to be a standalone question, in the same language as the follow up input. You do not repeat yourself. You avoid bulleted list or emojis.
-<</SYS>>
 
 Chat history:
 {chat_history}
@@ -57,6 +59,7 @@ class SeaLlmInstructContentHandler(LLMContentHandler):
     accepts = "application/json"
 
     def transform_input(self, prompt, model_kwargs) -> bytes:
+        logger.info(f"prompt: {prompt}")
         input_str = json.dumps(
             {
                 "inputs": prompt,
@@ -73,7 +76,9 @@ class SeaLlmInstructContentHandler(LLMContentHandler):
         return input_str.encode("utf-8")
 
     def transform_output(self, output: bytes):
-        response_json = json.loads(output.read().decode("utf-8"))
+        out_str = output.read().decode("utf-8")
+        logger.info(f"output: {out_str}")
+        response_json = json.loads(out_str)
         return response_json[0]["generated_text"]
 
 
@@ -110,7 +115,7 @@ class SMSeaLlmChatAdapter(ModelAdapter):
         return SeaLlmChatPromptTemplate
 
     def get_condense_question_prompt(self):
-        return SeaLlmChatCondensedQAPrompt
+        return SeaLlmChatCondensedQAPromptTemplate
 
 
 # Register the adapter
