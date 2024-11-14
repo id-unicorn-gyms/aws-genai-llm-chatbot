@@ -1,7 +1,7 @@
 from langchain.schema import AIMessage, HumanMessage
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import PromptTemplate
-from config import DynamoDBReader
+import genai_config.config as config 
 
 BEGIN_OF_TEXT = "<|begin_of_text|>"
 SYSTEM_HEADER = "<|start_header_id|>system<|end_header_id|>"
@@ -14,7 +14,7 @@ table_name = "test-table-ddb"
 key_name = "model_id"
 key_value = "llama3"
 
-reader = DynamoDBReader(table_name, key_name)
+reader = config.DynamoDBReader(table_name, key_name)
 prompt_default = reader.read_value(key_value)["prompt_default"]['S']
 prompt_qna = reader.read_value(key_value)["prompt_qna"]['S']
 prompt_condensed_qna = reader.read_value(key_value)["prompt_condensed_qna"]['S']
