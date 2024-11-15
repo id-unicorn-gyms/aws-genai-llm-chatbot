@@ -59,6 +59,11 @@ print(Llama3QAPromptTemplate_new)
 print(Llama3CondensedQAPromptTemplate_new)
 
 
+print("========== old prompt template from code")
+print(Llama3PromptTemplate)
+print(Llama3QAPromptTemplate)
+print(Llama3CondensedQAPromptTemplate)
+
 class Llama3ConversationBufferMemory(ConversationBufferMemory):
     @property
     def buffer_as_str(self) -> str:
