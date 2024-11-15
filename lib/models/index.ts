@@ -54,7 +54,7 @@ export class Models extends Construct {
           {
             model: JumpStartModel.of(js.model),
             instanceType: SageMakerInstanceType.of(
-              sagemakerEndpoint.instanceType.toUpperCase()
+              sagemakerEndpoint.instanceType.toLowerCase()
             ),
             vpcConfig: {
               securityGroupIds: [props.shared.vpc.vpcDefaultSecurityGroup],
@@ -63,6 +63,7 @@ export class Models extends Construct {
               ),
             },
             endpointName: endpointName,
+            acceptEula: true,
           }
         );
         this.suppressCdkNagWarningForEndpointRole(modelEndpoint.role);
@@ -109,9 +110,9 @@ export class Models extends Construct {
                   hf.container.repositoryName,
                   hf.container.tag
                 )
-              : DeepLearningContainerImage.HUGGINGFACE_PYTORCH_TGI_INFERENCE_2_1_1_TGI2_0_0_GPU_PY310_CU121_UBUNTU22_04,
+              : DeepLearningContainerImage.HUGGINGFACE_PYTORCH_TGI_INFERENCE_2_3_0_TGI2_2_0_GPU_PY310_CU121_UBUNTU22_04,
             instanceType: SageMakerInstanceType.of(
-              sagemakerEndpoint.instanceType.toUpperCase()
+              sagemakerEndpoint.instanceType.toLowerCase()
             ),
             startupHealthCheckTimeoutInSeconds:
               sagemakerEndpoint.startupHealthCheckTimeoutInSeconds ?? 600,
