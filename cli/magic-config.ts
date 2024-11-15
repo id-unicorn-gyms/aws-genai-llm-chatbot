@@ -7,7 +7,6 @@ import { Command } from "commander";
 import * as enquirer from "enquirer";
 import {
   SupportedRegion,
-  SupportedSageMakerModels,
   SystemConfig,
   SupportedBedrockRegion,
 } from "../lib/shared/types";
@@ -18,6 +17,7 @@ import { tz } from "moment-timezone";
 import { getData } from "country-list";
 import { randomBytes } from "crypto";
 import { StringUtils } from "turbocommons-ts";
+import { SagemakerModelEndpointSelections } from "./sample-sm-model-deployment-config";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -158,7 +158,7 @@ const embeddingModels = [
       options.bedrockRoleArn = config.bedrock?.roleArn;
       options.guardrailsEnable = config.bedrock?.guardrails?.enabled;
       options.guardrails = config.bedrock?.guardrails;
-      options.sagemakerModels = config.llms?.sagemaker ?? [];
+      options.sagemakerModels = [];
       options.enableSagemakerModels = config.llms?.sagemaker
         ? config.llms?.sagemaker.length > 0
         : false;
@@ -378,12 +378,13 @@ async function processCreateOptions(options: any): Promise<void> {
       name: "sagemakerModels",
       hint: "SPACE to select, ENTER to confirm selection [denotes instance size to host model]",
       message: "Which SageMaker Models do you want to enable",
-      choices: Object.values(SupportedSageMakerModels),
+      choices: Object.keys(SagemakerModelEndpointSelections),
       initial:
-        (options.sagemakerModels ?? []).filter((m: string) =>
-          Object.values(SupportedSageMakerModels)
-            .map((x) => x.toString())
-            .includes(m)
+        (options.sagemakerModels ?? []).filter(
+          (m: string) =>
+            Object.keys(SagemakerModelEndpointSelections).filter((k) =>
+              m.includes(k)
+            ).length > 0
         ) || [],
       validate(choices: any) {
         return (this as any).skipped || choices.length > 0
@@ -1187,7 +1188,9 @@ async function processCreateOptions(options: any): Promise<void> {
         }
       : undefined,
     llms: {
-      sagemaker: answers.sagemakerModels,
+      sagemaker: answers.sagemakerModels.map(
+        (sm: string) => SagemakerModelEndpointSelections[sm]
+      ),
       huggingfaceApiSecretArn: answers.huggingfaceApiSecretArn,
       sagemakerSchedule: answers.enableSagemakerModelsSchedule
         ? {
