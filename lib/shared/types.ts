@@ -177,6 +177,32 @@ export interface SystemConfig {
   };
 }
 
+export interface SagemakerModelDeploymentConf {
+  name: string;
+  endpointName?: string;
+  jumpstart?: {
+    model: string; // JumpStartModel
+  };
+  huggingface?: {
+    modelId: string;
+    container?: {
+      // https://github.com/awslabs/generative-ai-cdk-constructs/blob/main/src/patterns/gen-ai/aws-model-deployment-sagemaker/deep-learning-container-image.ts
+      repositoryName: string;
+      tag: string;
+    };
+  };
+  instanceType: string; // SageMakerInstanceType;
+  startupHealthCheckTimeoutInSeconds?: number;
+  environments?: {
+    [key: string]: string;
+  };
+  responseStreamingSupported?: boolean;
+  inputModalities?: string[]; // Modality[];
+  outputModalities?: string[]; // Modality[];
+  interface?: string; // ModelInterface;
+  ragSupported?: boolean;
+}
+
 export interface SageMakerLLMEndpoint {
   name: string;
   endpoint: sagemaker.CfnEndpoint;
