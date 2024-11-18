@@ -1,8 +1,5 @@
-import {
-  SupportedRegion,
-  SupportedSageMakerModels,
-  SystemConfig,
-} from "../../lib/shared/types";
+import { SupportedRegion, SystemConfig } from "../../lib/shared/types";
+import { SagemakerModelEndpointSelections } from "../../cli/sample-sm-model-deployment-config";
 
 export function getTestConfig(): SystemConfig {
   // Default config
@@ -18,8 +15,10 @@ export function getTestConfig(): SystemConfig {
     },
     llms: {
       sagemaker: [
-        SupportedSageMakerModels.FalconLite,
-        SupportedSageMakerModels.Idefics_80b,
+        SagemakerModelEndpointSelections["FalconLite [ml.g5.12xlarge]"],
+        SagemakerModelEndpointSelections[
+          "Idefics_80b (Multimodal) [ml.g5.48xlarge]"
+        ],
       ],
     },
     rag: {

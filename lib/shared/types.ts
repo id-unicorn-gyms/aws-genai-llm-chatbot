@@ -2,22 +2,6 @@ import * as sagemaker from "aws-cdk-lib/aws-sagemaker";
 
 export type ModelProvider = "sagemaker" | "bedrock" | "openai";
 
-export enum SupportedSageMakerModels {
-  FalconLite = "FalconLite [ml.g5.12xlarge]",
-  Idefics_9b = "Idefics_9b (Multimodal) [ml.g5.12xlarge]",
-  Idefics_80b = "Idefics_80b (Multimodal) [ml.g5.48xlarge]",
-  Llama2_13b_Chat = "Llama2_13b_Chat [ml.g5.12xlarge]",
-  Llama3_1_8B_Instruct = "Llama3.1_8b_Instruct [ml.g5.4xlarge]",
-  Llama3_1_70B_Instruct = "Llama3.1_70b_Instruct [ml.g5.48xlarge]",
-  Qwen2_7B_Instruct = "Qwen2_7B_Instruct [ml.g5.4xlarge]",
-  Qwen2_5_7B_Instruct = "Qwen2_5_7B_Instruct [ml.g5.4xlarge]",
-  SeaLLMs_v3_7B_Chat = "SeaLLMs_v3_7B_Chat [ml.g5.2xlarge]",
-  Mistral7b_Instruct = "Mistral7b_Instruct 0.1 [ml.g5.2xlarge]",
-  Mistral7b_Instruct2 = "Mistral7b_Instruct 0.2 [ml.g5.2xlarge]",
-  Mistral7b_Instruct3 = "Mistral7b_Instruct 0.3 [ml.g5.2xlarge]",
-  Mixtral_8x7b_Instruct = "Mixtral_8x7B_Instruct 0.1 [ml.g5.48xlarge]",
-}
-
 export enum SupportedRegion {
   AF_SOUTH_1 = "af-south-1",
   AP_EAST_1 = "ap-east-1",
@@ -118,7 +102,7 @@ export interface SystemConfig {
     };
   };
   llms: {
-    sagemaker: SupportedSageMakerModels[];
+    sagemaker: SagemakerModelDeploymentConf[];
     huggingfaceApiSecretArn?: string;
     sagemakerSchedule?: {
       enabled?: boolean;
@@ -175,6 +159,32 @@ export interface SystemConfig {
       default?: boolean;
     }[];
   };
+}
+
+export interface SagemakerModelDeploymentConf {
+  name: string;
+  endpointName?: string;
+  jumpstart?: {
+    model: string; // JumpStartModel
+  };
+  huggingface?: {
+    modelId: string;
+    container?: {
+      // https://github.com/awslabs/generative-ai-cdk-constructs/blob/main/src/patterns/gen-ai/aws-model-deployment-sagemaker/deep-learning-container-image.ts
+      repositoryName: string;
+      tag: string;
+    };
+  };
+  instanceType: string; // SageMakerInstanceType;
+  startupHealthCheckTimeoutInSeconds?: number;
+  environments?: {
+    [key: string]: string;
+  };
+  responseStreamingSupported?: boolean;
+  inputModalities?: string[]; // Modality[];
+  outputModalities?: string[]; // Modality[];
+  interface?: string; // ModelInterface;
+  ragSupported?: boolean;
 }
 
 export interface SageMakerLLMEndpoint {
