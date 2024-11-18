@@ -165,7 +165,7 @@ export const SagemakerModelEndpointSelections: {
     },
   },
   "SeaLLMs_v3_7B_Chat [ml.g5.2xlarge]": {
-    name: "qwen257bInstruct",
+    name: "SeaLLMs_v3_7B_Chat",
     huggingface: {
       modelId: "SeaLLMs/SeaLLMs-v3-7B-Chat",
       container: {
@@ -179,19 +179,23 @@ export const SagemakerModelEndpointSelections: {
       SM_NUM_GPUS: JSON.stringify(1),
     },
   },
-  "Gemma2_9B_sahabatai_v1 [ml.g5.2xlarge]": {
-    name: "Gemma2_9B_sahabatai_v1_instruct",
+  "Llama3_8B_sahabatai_v1_instruct [ml.g5.2xlarge]": {
+    name: "Llama3_8B_sahabatai_v1_instruct",
     huggingface: {
-      modelId: "GoToCompany/gemma2-9b-cpt-sahabatai-v1-instruct",
+      modelId: "GoToCompany/llama3-8b-cpt-sahabatai-v1-instruct",
       container: {
         repositoryName: "huggingface-pytorch-tgi-inference",
-        tag: "2.3.0-tgi2.2.0-gpu-py310-cu121-ubuntu22.04",
+        tag: "2.4.0-tgi2.4.0-gpu-py311-cu124-ubuntu22.04",
       },
     },
     instanceType: "ml.g5.2xlarge",
     startupHealthCheckTimeoutInSeconds: 300,
     environments: {
       SM_NUM_GPUS: JSON.stringify(1),
+      MAX_INPUT_LENGTH: JSON.stringify(1024),
+      MAX_BATCH_PREFILL_TOKENS: JSON.stringify(2048),
+      MAX_BATCH_TOTAL_TOKENS: JSON.stringify(4096),
+      MAX_TOTAL_TOKENS: JSON.stringify(4096),
     },
   },
   "Llama3.1_8b_Instruct [ml.g5.4xlarge]": {
