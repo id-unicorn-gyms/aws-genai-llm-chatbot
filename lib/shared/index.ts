@@ -3,8 +3,10 @@ import * as kms from "aws-cdk-lib/aws-kms";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
+import * as iam from "aws-cdk-lib/aws-iam";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as logs from "aws-cdk-lib/aws-logs";
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import { Construct } from "constructs";
 import * as path from "path";
 import { Layer } from "../layer";
@@ -36,6 +38,7 @@ export class Shared extends Construct {
   readonly powerToolsLayer: lambda.ILayerVersion;
   readonly sharedCode: SharedAssetBundler;
   readonly s3vpcEndpoint: ec2.InterfaceVpcEndpoint;
+  readonly modelConfigTable: dynamodb.Table;
 
   constructor(scope: Construct, id: string, props: SharedProps) {
     super(scope, id);
@@ -138,6 +141,74 @@ export class Shared extends Construct {
       // Create a VPC endpoint for DynamoDB.
       vpc.addGatewayEndpoint("DynamoDBEndpoint", {
         service: ec2.GatewayVpcEndpointAwsService.DYNAMODB,
+      });
+
+      // Create DynamoDB table for model configurations
+      this.modelConfigTable = new dynamodb.Table(this, "ModelConfigTable", {
+        tableName: "model-config",
+        partitionKey: { name: "model_id", type: dynamodb.AttributeType.STRING },
+        removalPolicy: props.config.retainOnDelete === true
+          ? cdk.RemovalPolicy.RETAIN
+          : cdk.RemovalPolicy.DESTROY,
+        encryption: props.config.createCMKs
+          ? dynamodb.TableEncryption.CUSTOMER_MANAGED
+          : dynamodb.TableEncryption.AWS_MANAGED,
+        encryptionKey: props.config.createCMKs ? this.kmsKey : undefined,
+      });
+
+      // Grant permissions to the Lambda function
+      this.modelConfigTable.grantReadData(new iam.ServicePrincipal("lambda.amazonaws.com"));
+
+      // Load initial model config data
+      new cdk.aws_dynamodb.CfnGlobalTable(this, 'ModelConfigData', {
+        tableName: this.modelConfigTable.tableName,
+        replicas: [{
+          region: cdk.Stack.of(this).region,
+        }],
+        attributeDefinitions: [{
+          attributeName: 'model_id',
+          attributeType: 'S'
+        }],
+        keySchema: [{
+          attributeName: 'model_id',
+          keyType: 'HASH'
+        }],
+        streamSpecification: {
+          streamViewType: 'NEW_AND_OLD_IMAGES'
+        },
+        ttl: {
+          attributeName: 'ttl',
+          enabled: false
+        }
+      }).addDependsOn(this.modelConfigTable.node.defaultChild as cdk.CfnResource);
+
+      // Add initial items to the table
+      new cdk.CustomResource(this, 'LoadModelConfigData', {
+        serviceToken: new cdk.custom_resources.Provider(this, 'ModelConfigDataProvider', {
+          onEventHandler: new lambda.Function(this, 'ModelConfigDataLoader', {
+            runtime: lambda.Runtime.NODEJS_18_X,
+            handler: 'index.handler',
+            code: lambda.Code.fromInline(`
+              const AWS = require('aws-sdk');
+              const fs = require('fs');
+              const dynamoDB = new AWS.DynamoDB();
+              exports.handler = async (event) => {
+                if (event.RequestType === 'Create' || event.RequestType === 'Update') {
+                  const items = require('./model-config-data.json');
+                  await dynamoDB.putItem({
+                    TableName: '${this.modelConfigTable.tableName}',
+                    Item: items
+                  }).promise();
+                }
+                return { PhysicalResourceId: Date.now().toString() };
+              };
+            `),
+            timeout: cdk.Duration.minutes(5)
+          }),
+        }),
+        properties: {
+          Version: Date.now().toString() // Force update on each deployment
+        }
       });
 
       // Create VPC Endpoint for Secrets Manager

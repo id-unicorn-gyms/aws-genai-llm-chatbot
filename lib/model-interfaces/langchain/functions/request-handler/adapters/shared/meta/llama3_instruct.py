@@ -10,7 +10,7 @@ ASSISTANT_HEADER = "<|start_header_id|>assistant<|end_header_id|>"
 EOD = "<|eot_id|>"
 
 #externalize config from DynamoDB
-table_name = "test-table-ddb"
+table_name = "model-config"
 key_name = "model_id"
 key_value = "llama3"
 
