@@ -175,11 +175,11 @@ export class Shared extends Construct {
         }],
         streamSpecification: {
           streamViewType: 'NEW_AND_OLD_IMAGES'
-        },
-        ttl: {
-          attributeName: 'ttl',
-          enabled: false
         }
+        // ttl: {
+        //   attributeName: 'ttl',
+        //   enabled: false
+        // }
       }).addDependsOn(this.modelConfigTable.node.defaultChild as cdk.CfnResource);
 
       // Add initial items to the table
