@@ -150,6 +150,7 @@ export class Shared extends Construct {
         removalPolicy: props.config.retainOnDelete === true
           ? cdk.RemovalPolicy.RETAIN
           : cdk.RemovalPolicy.DESTROY,
+        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
         encryption: props.config.createCMKs
           ? dynamodb.TableEncryption.CUSTOMER_MANAGED
           : dynamodb.TableEncryption.AWS_MANAGED,
