@@ -328,8 +328,6 @@ export class AwsGenAILLMChatbotStack extends cdk.Stack {
         `/${this.stackName}/ChatBotApi/Realtime/Resolvers/outgoing-message-handler/ServiceRole/DefaultPolicy/Resource`,
         `/${this.stackName}/IdeficsInterface/MultiModalInterfaceRequestHandler/ServiceRole/DefaultPolicy/Resource`,
         `/${this.stackName}/IdeficsInterface/MultiModalInterfaceRequestHandler/ServiceRole/Resource`,
-        `/${this.stackName}/Shared/ModelConfigDataProvider/framework-onEvent/ServiceRole/Resource`,
-        `/${this.stackName}/Shared/ModelConfigDataProvider/framework-onEvent/ServiceRole/DefaultPolicy/Resource`,
         ...(langchainInterface
           ? [
               `/${this.stackName}/LangchainInterface/RequestHandler/ServiceRole/Resource`,
