@@ -17,7 +17,7 @@ from ...shared.meta.llama3_instruct import (
 )
 
 
-class Llama3InstructContentHandler(LLMContentHandler):
+class SahabatAiLlama3InstructContentHandler(LLMContentHandler):
     content_type = "application/json"
     accepts = "application/json"
 
@@ -40,17 +40,19 @@ class Llama3InstructContentHandler(LLMContentHandler):
 
     def transform_output(self, output: bytes):
         output_str = output.read().decode("utf-8")
-        print(output_str)
         response_json = json.loads(output_str)
-        return response_json["generated_text"] if response_json else ""
+        if not response_json:
+            return ""
+        all_text = response_json[0]["generated_text"]
+        return all_text.split("|>")[-1].strip()
 
 
-class SMJumpstartLlama3InstructAdapter(ModelAdapter):
+class SahabatAiLlama3InstructAdapter(ModelAdapter):
 
     def __init__(self, model_id, **kwargs):
         self.model_id = model_id
-        self.endpoint_name = f"jumpstart-{model_id}"
-        self.content_handler = Llama3InstructContentHandler()
+        self.endpoint_name = model_id
+        self.content_handler = SahabatAiLlama3InstructContentHandler()
         super().__init__(**kwargs)
 
     def get_memory(self, output_key=None, return_messages=False):
@@ -89,5 +91,4 @@ class SMJumpstartLlama3InstructAdapter(ModelAdapter):
         return Llama3CondensedQAPromptTemplate
 
 
-# Register the adapter
-registry.register(r"(?i)sagemaker\.meta-LLama3-1.*\d+b.*instruct.*", SMJumpstartLlama3InstructAdapter)
+registry.register(r"(?i)sagemaker\.GoToCompany-*", SahabatAiLlama3InstructAdapter)
