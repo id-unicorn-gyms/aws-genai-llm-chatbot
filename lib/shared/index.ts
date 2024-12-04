@@ -205,7 +205,7 @@ export class Shared extends Construct {
             `),
             timeout: cdk.Duration.minutes(5)
           }),
-        }),
+        }).serviceToken,
         properties: {
           Version: Date.now().toString() // Force update on each deployment
         }
