@@ -188,7 +188,7 @@ export class Shared extends Construct {
       new cdk.CustomResource(this, 'LoadModelConfigData', {
         serviceToken: new cdk.custom_resources.Provider(this, 'ModelConfigDataProvider', {
           onEventHandler: new lambda.Function(this, 'ModelConfigDataLoader', {
-            runtime: lambda.Runtime.NODEJS_22_X,
+            runtime: lambda.Runtime.NODEJS_18_X,
             handler: 'index.handler',
             code: lambda.Code.fromInline(`
               const { DynamoDB } = require('@aws-sdk/client-dynamodb');
@@ -205,12 +205,7 @@ export class Shared extends Construct {
                 return { PhysicalResourceId: Date.now().toString() };
               };
             `),
-            timeout: cdk.Duration.minutes(5),
-            bundling: {
-              externalModules: [
-                '@aws-sdk/client-dynamodb'
-              ]
-            }
+            timeout: cdk.Duration.minutes(5)
           }),
         }).serviceToken,
         properties: {
