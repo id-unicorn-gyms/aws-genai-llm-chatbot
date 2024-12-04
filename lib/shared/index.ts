@@ -163,6 +163,7 @@ export class Shared extends Construct {
       // Load initial model config data
       new cdk.aws_dynamodb.CfnGlobalTable(this, 'ModelConfigData', {
         tableName: this.modelConfigTable.tableName,
+        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
         replicas: [{
           region: cdk.Stack.of(this).region,
         }],
