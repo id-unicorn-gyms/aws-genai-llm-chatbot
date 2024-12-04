@@ -185,33 +185,33 @@ export class Shared extends Construct {
       // }).addDependsOn(this.modelConfigTable.node.defaultChild as cdk.CfnResource);
 
       // Add initial items to the table
-      new cdk.CustomResource(this, 'LoadModelConfigData', {
-        serviceToken: new cdk.custom_resources.Provider(this, 'ModelConfigDataProvider', {
-          onEventHandler: new lambda.Function(this, 'ModelConfigDataLoader', {
-            runtime: lambda.Runtime.NODEJS_18_X,
-            handler: 'index.handler',
-            code: lambda.Code.fromInline(`
-              const { DynamoDB } = require('@aws-sdk/client-dynamodb');
-              const fs = require('fs');
-              const dynamoDB = new DynamoDB();
-              exports.handler = async (event) => {
-                if (event.RequestType === 'Create' || event.RequestType === 'Update') {
-                  const items = require('./model-config-data.json');
-                  await dynamoDB.putItem({
-                    TableName: '${this.modelConfigTable.tableName}',
-                    Item: items
-                  });
-                }
-                return { PhysicalResourceId: Date.now().toString() };
-              };
-            `),
-            timeout: cdk.Duration.minutes(5)
-          }),
-        }).serviceToken,
-        properties: {
-          Version: Date.now().toString() // Force update on each deployment
-        }
-      });
+      // new cdk.CustomResource(this, 'LoadModelConfigData', {
+      //   serviceToken: new cdk.custom_resources.Provider(this, 'ModelConfigDataProvider', {
+      //     onEventHandler: new lambda.Function(this, 'ModelConfigDataLoader', {
+      //       runtime: lambda.Runtime.NODEJS_18_X,
+      //       handler: 'index.handler',
+      //       code: lambda.Code.fromInline(`
+      //         const { DynamoDB } = require('@aws-sdk/client-dynamodb');
+      //         const fs = require('fs');
+      //         const dynamoDB = new DynamoDB();
+      //         exports.handler = async (event) => {
+      //           if (event.RequestType === 'Create' || event.RequestType === 'Update') {
+      //             const items = require('./model-config-data.json');
+      //             await dynamoDB.putItem({
+      //               TableName: '${this.modelConfigTable.tableName}',
+      //               Item: items
+      //             });
+      //           }
+      //           return { PhysicalResourceId: Date.now().toString() };
+      //         };
+      //       `),
+      //       timeout: cdk.Duration.minutes(5)
+      //     }),
+      //   }).serviceToken,
+      //   properties: {
+      //     Version: Date.now().toString() // Force update on each deployment
+      //   }
+      // });
 
       // Create VPC Endpoint for Secrets Manager
       vpc.addInterfaceEndpoint("SecretsManagerEndpoint", {
