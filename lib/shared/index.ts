@@ -160,29 +160,29 @@ export class Shared extends Construct {
       // Grant permissions to the Lambda function
       this.modelConfigTable.grantReadData(new iam.ServicePrincipal("lambda.amazonaws.com"));
 
-      // Load initial model config data
-      new cdk.aws_dynamodb.CfnGlobalTable(this, 'ModelConfigData', {
-        tableName: this.modelConfigTable.tableName,
-        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-        replicas: [{
-          region: cdk.Stack.of(this).region,
-        }],
-        attributeDefinitions: [{
-          attributeName: 'model_id',
-          attributeType: 'S'
-        }],
-        keySchema: [{
-          attributeName: 'model_id',
-          keyType: 'HASH'
-        }],
-        streamSpecification: {
-          streamViewType: 'NEW_AND_OLD_IMAGES'
-        }
-        // ttl: {
-        //   attributeName: 'ttl',
-        //   enabled: false
-        // }
-      }).addDependsOn(this.modelConfigTable.node.defaultChild as cdk.CfnResource);
+      // // Load initial model config data
+      // new cdk.aws_dynamodb.CfnGlobalTable(this, 'ModelConfigData', {
+      //   tableName: this.modelConfigTable.tableName,
+      //   billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      //   replicas: [{
+      //     region: cdk.Stack.of(this).region,
+      //   }],
+      //   attributeDefinitions: [{
+      //     attributeName: 'model_id',
+      //     attributeType: 'S'
+      //   }],
+      //   keySchema: [{
+      //     attributeName: 'model_id',
+      //     keyType: 'HASH'
+      //   }],
+      //   streamSpecification: {
+      //     streamViewType: 'NEW_AND_OLD_IMAGES'
+      //   }
+      //   // ttl: {
+      //   //   attributeName: 'ttl',
+      //   //   enabled: false
+      //   // }
+      // }).addDependsOn(this.modelConfigTable.node.defaultChild as cdk.CfnResource);
 
       // Add initial items to the table
       new cdk.CustomResource(this, 'LoadModelConfigData', {
