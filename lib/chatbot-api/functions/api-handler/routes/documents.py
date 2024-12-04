@@ -5,6 +5,7 @@ from common.constant import (
     SAFE_STR_REGEX,
     MAX_STR_INPUT_LENGTH,
     SAFE_SHORT_STR_VALIDATION,
+    FILE_NAME_SAFE_STR_REGEX
 )
 import genai_core.types
 import genai_core.presign
@@ -22,7 +23,7 @@ logger = Logger()
 
 class FileUploadRequest(BaseModel):
     workspaceId: Optional[str] = ID_FIELD_VALIDATION
-    fileName: str = Field(min_length=1, max_length=500, pattern=SAFE_STR_REGEX)
+    fileName: str = Field(min_length=1, max_length=500, pattern=FILE_NAME_SAFE_STR_REGEX)
 
 
 class TextDocumentRequest(BaseModel):

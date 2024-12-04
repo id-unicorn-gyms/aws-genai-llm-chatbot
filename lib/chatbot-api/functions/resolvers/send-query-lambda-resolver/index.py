@@ -17,6 +17,10 @@ TOPIC_ARN = os.environ.get("SNS_TOPIC_ARN", "")
 MAX_STR_INPUT_LENGTH = 1000000
 SAFE_STR_REGEX = r"^[A-Za-z0-9-_. ]*$"
 SAFE_SHORT_STR_VALIDATION = Field(min_length=0, max_length=500, pattern=SAFE_STR_REGEX)
+MODEL_NAME_SAFE_STR_REGEX = r"^[A-Za-z0-9-_.]*(:[0-9]+)?$"
+MODEL_NAME_SAFE_SHORT_STR_VALIDATION = Field(min_length=0, max_length=500, pattern=MODEL_NAME_SAFE_STR_REGEX)
+FILE_NAME_SAFE_STR_REGEX = r"^[A-Za-z0-9-_.\[\] ]*$"
+FILE_NAME_SAFE_SHORT_STR_VALIDATION = Field(min_length=0, max_length=500, pattern=FILE_NAME_SAFE_STR_REGEX)
 
 
 class ModelKwargsFieldValidation(BaseModel):
@@ -28,11 +32,11 @@ class ModelKwargsFieldValidation(BaseModel):
 
 class FileFieldValidation(BaseModel):
     provider: Optional[str] = SAFE_SHORT_STR_VALIDATION
-    key: Optional[str] = SAFE_SHORT_STR_VALIDATION
+    key: Optional[str] = FILE_NAME_SAFE_SHORT_STR_VALIDATION
 
 
 class DataFieldValidation(BaseModel):
-    modelName: Optional[str] = SAFE_SHORT_STR_VALIDATION
+    modelName: Optional[str] = MODEL_NAME_SAFE_SHORT_STR_VALIDATION
     provider: Optional[str] = SAFE_SHORT_STR_VALIDATION
     sessionId: Optional[str] = SAFE_SHORT_STR_VALIDATION
     workspaceId: Optional[str] = SAFE_SHORT_STR_VALIDATION
