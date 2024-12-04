@@ -188,24 +188,29 @@ export class Shared extends Construct {
       new cdk.CustomResource(this, 'LoadModelConfigData', {
         serviceToken: new cdk.custom_resources.Provider(this, 'ModelConfigDataProvider', {
           onEventHandler: new lambda.Function(this, 'ModelConfigDataLoader', {
-            runtime: lambda.Runtime.NODEJS_18_X,
+            runtime: lambda.Runtime.NODEJS_22_X,
             handler: 'index.handler',
             code: lambda.Code.fromInline(`
-              const AWS = require('aws-sdk');
+              const { DynamoDB } = require('@aws-sdk/client-dynamodb');
               const fs = require('fs');
-              const dynamoDB = new AWS.DynamoDB();
+              const dynamoDB = new DynamoDB();
               exports.handler = async (event) => {
                 if (event.RequestType === 'Create' || event.RequestType === 'Update') {
                   const items = require('./model-config-data.json');
                   await dynamoDB.putItem({
                     TableName: '${this.modelConfigTable.tableName}',
                     Item: items
-                  }).promise();
+                  });
                 }
                 return { PhysicalResourceId: Date.now().toString() };
               };
             `),
-            timeout: cdk.Duration.minutes(5)
+            timeout: cdk.Duration.minutes(5),
+            bundling: {
+              externalModules: [
+                '@aws-sdk/client-dynamodb'
+              ]
+            }
           }),
         }).serviceToken,
         properties: {
