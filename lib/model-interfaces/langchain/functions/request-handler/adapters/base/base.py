@@ -25,6 +25,8 @@ from langchain_core.messages.ai import AIMessage, AIMessageChunk
 from langchain_core.messages.human import HumanMessage
 from langchain_aws import ChatBedrockConverse
 
+from genai_core.utils.dynamodb_reader import DynamoDBReader
+
 logger = Logger()
 
 
@@ -68,7 +70,6 @@ class LLMStartHandler(BaseCallbackHandler):
                 + generation.message.usage_metadata.get("total_tokens"),
             }
 
-
 class ModelAdapter:
     def __init__(
         self,
@@ -77,17 +78,13 @@ class ModelAdapter:
         mode=ChatbotMode.CHAIN.value,
         disable_streaming=False,
         model_kwargs={},
-        override_prompt=None,
-        override_prompt_qna=None,
-        override_prompt_condensed_qna=None,
+        prompt_templates=None,
     ):
         self.session_id = session_id
         self.user_id = user_id
         self._mode = mode
         self.model_kwargs = model_kwargs
-        self.override_prompt = PromptTemplate.from_template(override_prompt) if override_prompt else None
-        self.override_prompt_qna = PromptTemplate.from_template(override_prompt_qna) if override_prompt_qna else None
-        self.override_prompt_condensed_qna = PromptTemplate.from_template(override_prompt_condensed_qna) if override_prompt_condensed_qna else None
+        self.prompt_templates = prompt_templates
         self.disable_streaming = disable_streaming
 
         self.callback_handler = LLMStartHandler()
@@ -95,6 +92,15 @@ class ModelAdapter:
 
         self.chat_history = self.get_chat_history()
         self.llm = self.get_llm(model_kwargs)
+
+    def _prompt_template_with_default(self, default_template):
+        return self.prompt_templates["prompt_tmpl"] if self.prompt_templates["prompt_tmpl"] else default_template
+
+    def _prompt_qna_template_with_default(self, default_template):
+        return self.prompt_templates["prompt_qna_tmpl"] if self.prompt_templates["prompt_qna_tmpl"] else default_template
+
+    def _prompt_condensed_qna_template_with_default(self, default_template):
+        return self.prompt_templates["prompt_condensed_qna_tmpl"] if self.prompt_templates["prompt_condensed_qna_tmpl"] else default_template
 
     def __bind_callbacks(self):
         callback_methods = [method for method in dir(self) if method.startswith("on_")]
@@ -141,14 +147,13 @@ class ModelAdapter:
         {chat_history}
 
         Question: {input}"""  # noqa: E501
-
-        return PromptTemplate.from_template(template)
+        return self._prompt_template_with_default(PromptTemplate.from_template(template))
 
     def get_condense_question_prompt(self):
-        return CONDENSE_QUESTION_PROMPT
+        return self._prompt_condensed_qna_template_with_default(CONDENSE_QUESTION_PROMPT)
 
     def get_qa_prompt(self):
-        return QA_PROMPT
+        return self._prompt_qna_template_with_default(QA_PROMPT)
 
     def run_with_chain_v2(self, user_prompt, workspace_id=None):
         if not self.llm:

@@ -11,6 +11,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 
 import adapters  # noqa: F401 Needed to register the adapters
 from genai_core.langchain import DynamoDBChatMessageHistory
+from genai_core.prompt.template import PromptTemplateRetriever
 from genai_core.utils.dynamodb_reader import DynamoDBReader
 from genai_core.utils.websocket import send_to_client
 from genai_core.types import ChatbotAction
@@ -49,12 +50,9 @@ def handle_run(record):
 
     adapter = registry.get_adapter(f"{provider}.{model_id}")
 
-    ddb_reader = DynamoDBReader(table_name=os.environ["PROMPT_TEMPLATES_TABLE_NAME"], key_name="model_key")
-    prompt_templates = ddb_reader.get_override_prompt_template(provider, model_id)
+    prompt_tmpl_retriever = PromptTemplateRetriever(os.environ["PROMPT_TEMPLATES_TABLE_NAME"])
     model = adapter(model_id=model_id,
-        override_prompt=prompt_templates["prompt"],
-        override_prompt_qna=prompt_templates["prompt_qna"],
-        override_prompt_condensed_qna=prompt_templates["prompt_condensed_qna"])
+        prompt_templates=prompt_tmpl_retriever.get_templates(provider, model_id))
 
     prompt_template = model.format_prompt(
         prompt=prompt,

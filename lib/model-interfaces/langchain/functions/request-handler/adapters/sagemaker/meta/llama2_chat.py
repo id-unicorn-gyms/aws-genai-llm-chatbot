@@ -82,13 +82,13 @@ class SMLlama2ChatAdapter(ModelAdapter):
         )
 
     def get_prompt(self):
-        return Llama2ChatPromptTemplate
+        return self._prompt_template_with_default(Llama2ChatPromptTemplate)
 
     def get_qa_prompt(self):
-        return Llama2ChatQAPromptTemplate
+        return self._prompt_qna_template_with_default(Llama2ChatQAPromptTemplate)
 
     def get_condense_question_prompt(self):
-        return Llama2ChatCondensedQAPromptTemplate
+        return self._prompt_condensed_qna_template_with_default(Llama2ChatCondensedQAPromptTemplate)
 
 
 # Register the adapter

@@ -38,10 +38,3 @@ class DynamoDBReader:
     def read_value(self, key_value: Any) -> Any:
         return read_key_value_from_dynamodb(self.table_name, self.key_name, key_value)
 
-    def get_override_prompt_template(self, provider, model_id):
-        item = self.read_value(f"{provider}.{model_id}")
-        return {
-        "prompt": item["prompt"]["S"] if item and item.get("prompt") else None,
-        "prompt_qna": item["prompt_qna"]["S"] if item and item.get("prompt_qna") else None,
-        "prompt_condensed_qna": item["prompt_condensed_qna"]["S"] if item and item.get("prompt_condensed_qna") else None,
-        }

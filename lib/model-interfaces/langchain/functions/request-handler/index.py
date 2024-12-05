@@ -2,6 +2,8 @@ import os
 import json
 import uuid
 from datetime import datetime
+
+from genai_core.prompt.template import PromptTemplateRetriever
 from genai_core.registry import registry
 from aws_lambda_powertools import Logger, Tracer
 from aws_lambda_powertools.utilities import parameters
@@ -98,17 +100,14 @@ def handle_run(record):
     adapter.on_llm_new_token = lambda *args, **kwargs: on_llm_new_token(
         user_id, session_id, *args, **kwargs
     )
-    ddb_reader = DynamoDBReader(table_name=os.environ["PROMPT_TEMPLATES_TABLE_NAME"], key_name="model_key")
-    prompt_templates = ddb_reader.get_override_prompt_template(provider, model_id)
+    prompt_tmpl_retriever = PromptTemplateRetriever(os.environ["PROMPT_TEMPLATES_TABLE_NAME"])
     model = adapter(
         model_id=model_id,
         mode=mode,
         session_id=session_id,
         user_id=user_id,
         model_kwargs=data.get("modelKwargs", {}),
-        override_prompt=prompt_templates["prompt"],
-        override_prompt_qna=prompt_templates["prompt_qna"],
-        override_prompt_condensed_qna=prompt_templates["prompt_condensed_qna"]
+        prompt_templates=prompt_tmpl_retriever.get_templates(provider, model_id)
     )
 
     response = model.run(

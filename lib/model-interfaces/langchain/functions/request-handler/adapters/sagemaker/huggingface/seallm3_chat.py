@@ -108,14 +108,14 @@ class SMSeaLlmChatAdapter(ModelAdapter):
             callbacks=[self.callback_handler],
         )
 
-    def get_qa_prompt(self):
-        return self.override_prompt if self.override_prompt else SeaLlmChatQAPromptTemplate
-
     def get_prompt(self):
-        return self.override_prompt_qna if self.override_prompt_qna else SeaLlmChatPromptTemplate
+        return self._prompt_template_with_default(SeaLlmChatPromptTemplate)
+
+    def get_qa_prompt(self):
+        return self._prompt_qna_template_with_default(SeaLlmChatQAPromptTemplate)
 
     def get_condense_question_prompt(self):
-        return self.override_prompt_condensed_qna if self.override_prompt_condensed_qna else SeaLlmChatCondensedQAPromptTemplate
+        return self._prompt_condensed_qna_template_with_default(SeaLlmChatCondensedQAPromptTemplate)
 
 
 # Register the adapter

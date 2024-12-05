@@ -70,8 +70,7 @@ class SMFalconLiteAdapter(ModelAdapter):
             "template": template,
         }
         prompt_template = PromptTemplate(**prompt_template_args)
-
-        return prompt_template
+        return self._prompt_template_with_default(prompt_template)
 
 
 # Register the adapter
