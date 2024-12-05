@@ -109,13 +109,13 @@ class SMSeaLlmChatAdapter(ModelAdapter):
         )
 
     def get_qa_prompt(self):
-        return SeaLlmChatQAPromptTemplate
+        return self.override_prompt if self.override_prompt else SeaLlmChatQAPromptTemplate
 
     def get_prompt(self):
-        return SeaLlmChatPromptTemplate
+        return self.override_prompt_qna if self.override_prompt_qna else SeaLlmChatPromptTemplate
 
     def get_condense_question_prompt(self):
-        return SeaLlmChatCondensedQAPromptTemplate
+        return self.override_prompt_condensed_qna if self.override_prompt_condensed_qna else SeaLlmChatCondensedQAPromptTemplate
 
 
 # Register the adapter

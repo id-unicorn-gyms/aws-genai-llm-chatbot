@@ -77,11 +77,17 @@ class ModelAdapter:
         mode=ChatbotMode.CHAIN.value,
         disable_streaming=False,
         model_kwargs={},
+        override_prompt=None,
+        override_prompt_qna=None,
+        override_prompt_condensed_qna=None,
     ):
         self.session_id = session_id
         self.user_id = user_id
         self._mode = mode
         self.model_kwargs = model_kwargs
+        self.override_prompt = PromptTemplate.from_template(override_prompt) if override_prompt else None
+        self.override_prompt_qna = PromptTemplate.from_template(override_prompt_qna) if override_prompt_qna else None
+        self.override_prompt_condensed_qna = PromptTemplate.from_template(override_prompt_condensed_qna) if override_prompt_condensed_qna else None
         self.disable_streaming = disable_streaming
 
         self.callback_handler = LLMStartHandler()

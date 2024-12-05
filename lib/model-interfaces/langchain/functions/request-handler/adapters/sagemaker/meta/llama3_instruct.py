@@ -80,13 +80,13 @@ class SMJumpstartLlama3InstructAdapter(ModelAdapter):
         )
 
     def get_prompt(self):
-        return Llama3PromptTemplate
+        return self.override_prompt if self.override_prompt else Llama3PromptTemplate
 
     def get_qa_prompt(self):
-        return Llama3QAPromptTemplate
+        return self.override_prompt_qna if self.override_prompt_qna else Llama3QAPromptTemplate
 
     def get_condense_question_prompt(self):
-        return Llama3CondensedQAPromptTemplate
+        return self.override_prompt_condensed_qna if self.override_prompt_condensed_qna else Llama3CondensedQAPromptTemplate
 
 
 # Register the adapter

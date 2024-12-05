@@ -11,6 +11,7 @@ from aws_lambda_powertools.utilities.data_classes.sqs_event import SQSRecord
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
 import adapters  # noqa: F401 Needed to register the adapters
+from genai_core.utils.dynamodb_reader import DynamoDBReader
 from genai_core.utils.websocket import send_to_client
 from genai_core.types import ChatbotAction
 
@@ -78,6 +79,7 @@ def handle_heartbeat(record):
     )
 
 
+
 def handle_run(record):
     user_id = record["userId"]
     data = record["data"]
@@ -96,13 +98,17 @@ def handle_run(record):
     adapter.on_llm_new_token = lambda *args, **kwargs: on_llm_new_token(
         user_id, session_id, *args, **kwargs
     )
-
+    ddb_reader = DynamoDBReader(table_name=os.environ["PROMPT_TEMPLATES_TABLE_NAME"], key_name="model_key")
+    prompt_templates = ddb_reader.get_override_prompt_template(provider, model_id)
     model = adapter(
         model_id=model_id,
         mode=mode,
         session_id=session_id,
         user_id=user_id,
         model_kwargs=data.get("modelKwargs", {}),
+        override_prompt=prompt_templates["prompt"],
+        override_prompt_qna=prompt_templates["prompt_qna"],
+        override_prompt_condensed_qna=prompt_templates["prompt_condensed_qna"]
     )
 
     response = model.run(
