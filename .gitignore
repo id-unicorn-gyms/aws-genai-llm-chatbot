@@ -458,3 +458,5 @@ lib/user-interface/react-app/src/graphql/subscriptions.ts
 # js function
 !lib/authentication/lambda/updateUserPoolClient/index.js
 !lib/authentication/lambda/updateOidcSecret/index.js
+
+ariefh.md
