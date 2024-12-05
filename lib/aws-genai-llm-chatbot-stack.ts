@@ -77,6 +77,7 @@ export class AwsGenAILLMChatbotStack extends cdk.Stack {
         ragEngines,
         messagesTopic: chatBotApi.messagesTopic,
         sessionsTable: chatBotApi.sessionsTable,
+        promptTemplatesTable: chatBotApi.promptTemplatesTable,
         byUserIdIndex: chatBotApi.byUserIdIndex,
       });
 
@@ -120,6 +121,7 @@ export class AwsGenAILLMChatbotStack extends cdk.Stack {
       config: props.config,
       messagesTopic: chatBotApi.messagesTopic,
       sessionsTable: chatBotApi.sessionsTable,
+      promptTemplatesTable: chatBotApi.promptTemplatesTable,
       byUserIdIndex: chatBotApi.byUserIdIndex,
       chatbotFilesBucket: chatBotApi.filesBucket,
       createPrivateGateway: ideficsModels.length > 0,
@@ -250,6 +252,7 @@ export class AwsGenAILLMChatbotStack extends cdk.Stack {
       },
       tables: [
         chatBotApi.sessionsTable,
+        chatBotApi.promptTemplatesTable,
         ...(ragEngines
           ? [ragEngines.workspacesTable, ragEngines.documentsTable]
           : []),
