@@ -11,12 +11,19 @@ As of now (Dec 2024), [original repo](https://github.com/aws-samples/aws-genai-l
 Necessary changes, including in the dependency libraries, are made to make it deployable in Jakarta region.
 
 ## Model Selection
-As of now (Dec 2024), in [original repo](https://github.com/aws-samples/aws-genai-llm-chatbot) support several Sagemaker model deployments.
+As of now (Dec 2024), in [original repo](https://github.com/aws-samples/aws-genai-llm-chatbot) support several Sagemaker model deployments. but it's not actively maintained. i.e. Llama 2 is supported, but Llama 3 can't be deploy.
 Any new models to be added, code change needed in this [file](https://github.com/aws-samples/aws-genai-llm-chatbot/blob/main/lib/models/index.ts).
 
-In order to make the solution able to adapt new models easily we decide to externalize both HuggingFace model configurations and Sagemaker Jumpstart model configurations to `config.json` located in `aws-genai-llm-chatbot/bin`
-Benefit of this changes is that the code become easier to read and it is easier to add new models.
-We still need to redeploy the solutions every time we add or remove models from the configuration file.
+In order to make the solution able to adapt new models easily we decide to externalize both HuggingFace model configurations and Sagemaker JumpStart model configurations to `config.json` located in `aws-genai-llm-chatbot/bin`
+
+Benefits:
+* Allow adding new sagemaker model deployment via config file without code change. 
+* No need to rebuild code.
+
+Remarks:
+* Still need to redeploy the solutions every time we add or remove models from the configuration file.
+* JumpStart model deployment is still depends on `enum` in internal library which is not always up-to-date. Hence, you might not be able to deploy latest model in JumpStart. However, you can deploy same model as long as it's available in HuggingFace.
+
 
 ## Prompt Template Management
 As of now (Dec 2024), in [original repo](https://github.com/aws-samples/aws-genai-llm-chatbot), template for `prompt`, `prompt Q&A`, and `prompt condensed Q&A` are hardcoded for every model adapter.
