@@ -73,7 +73,7 @@ Benefits:
 
 Remarks:
 * Still need to redeploy the solutions every time we add or remove models from the configuration file.
-* JumpStart model deployment is still depends on `enum` in internal library which is not always up-to-date. Hence, you might not be able to deploy latest model in JumpStart. However, you can deploy same model as long as it's available in HuggingFace.
+* JumpStart model deployment still depends on `enum` in internal library which is not always up-to-date. Hence, you might not be able to deploy latest model in JumpStart. However, you can deploy same model as long as it's available in HuggingFace.
 
 
 ## Prompt Template Management
@@ -91,6 +91,9 @@ The new endpoint is using common REST API that currently is easier to adopt. The
 ## New Client Application Chat Widget
 We are adding reference implementation client app chat widget that will connect to the new endpoint.
 
+Add code snippet in your client application HTML
+![client-app](./image/changes/05-chat-widget-js.jpeg)
+The chat widget will connect you the Gen AI APIs
 ![client-app](./image/changes/04-new-client-app-example.jpg)
 
 ## Architecture Changes
