@@ -50,3 +50,7 @@ A sophisticated conversational AI platform specifically optimized for Indonesian
 
 ## Get Started with us!
 Please refer to [This Link](./installation.md) to get started.
+
+## Credits
+1. [AWS labs GenAI CDK Construct](https://github.com/awslabs/generative-ai-cdk-constructs)
+2. [AWS GenAI LLM Chatbot](https://aws-samples.github.io/aws-genai-llm-chatbot/)
