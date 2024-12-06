@@ -296,6 +296,12 @@ export class AwsGenAILLMChatbotStack extends cdk.Stack {
         value: monitoringConstruct.compositeAlarmTopic.topicName,
       });
     }
+    if (chatBotApi.promptTemplatesTable) {
+      new cdk.CfnOutput(this, "PromptTemplatesTableOutput", {
+        key: "PromptTemplatesTableOutput",
+        value: chatBotApi.promptTemplatesTable.tableName,
+      });
+    }
 
     /**
      * CDK NAG suppression
