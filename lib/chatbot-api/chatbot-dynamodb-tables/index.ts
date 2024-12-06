@@ -10,6 +10,7 @@ export interface ChatBotDynamoDBTablesProps {
 
 export class ChatBotDynamoDBTables extends Construct {
   public readonly sessionsTable: dynamodb.Table;
+  public readonly promptTemplatesTable: dynamodb.Table;
   public readonly byUserIdIndex: string = "byUserId";
 
   constructor(scope: Construct, id: string, props: ChatBotDynamoDBTablesProps) {
@@ -42,5 +43,26 @@ export class ChatBotDynamoDBTables extends Construct {
     });
 
     this.sessionsTable = sessionsTable;
+
+    this.promptTemplatesTable = new dynamodb.Table(
+      this,
+      "PromptTemplatesTable",
+      {
+        partitionKey: {
+          name: "model_key",
+          type: dynamodb.AttributeType.STRING,
+        },
+        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+        encryption: props.kmsKey
+          ? dynamodb.TableEncryption.CUSTOMER_MANAGED
+          : dynamodb.TableEncryption.AWS_MANAGED,
+        encryptionKey: props.kmsKey,
+        removalPolicy:
+          props.retainOnDelete === true
+            ? cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE
+            : cdk.RemovalPolicy.DESTROY,
+        pointInTimeRecovery: true,
+      }
+    );
   }
 }

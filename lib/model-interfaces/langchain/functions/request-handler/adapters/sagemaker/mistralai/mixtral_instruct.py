@@ -67,24 +67,21 @@ class SMMixtralInstructAdapter(ModelAdapter):
 
 {context}
 </s>[INST] {question} [/INST]"""  # noqa: E501
-
-        return PromptTemplate.from_template(template)
+        return self._prompt_qna_template_with_default(PromptTemplate.from_template(template))
 
     def get_prompt(self):
         template = """<s>[INST] The following is a friendly conversation between a human and an AI. If the AI does not know the answer to a question, it truthfully says it does not know.[/INST]
 
 {chat_history}
 <s>[INST] {input} [/INST]"""  # noqa: E501
-
-        return PromptTemplate.from_template(template)
+        return self._prompt_template_with_default(PromptTemplate.from_template(template))
 
     def get_condense_question_prompt(self):
         template = """<s>[INST] Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question, in its original language.[/INST]
 
 {chat_history}
 </s>[INST] {question} [/INST]"""  # noqa: E501
-
-        return PromptTemplate.from_template(template)
+        return self._prompt_condensed_qna_template_with_default(PromptTemplate.from_template(template))
 
 
 # Register the adapter
