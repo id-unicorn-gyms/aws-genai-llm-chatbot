@@ -6,14 +6,14 @@ This will benefit regions who does not have Bedrock yet and to showcase to custo
 We also add separate endpoint for client application to consume the Gen AI APIs for users that prefer not to use Cognito user pool.
 
 ## Deployable in Jakarta region
-As of now (Dec 2024), [original repo](https://github.com/aws-samples/aws-genai-llm-chatbot) can't be deployed to Jakarta region.
+As of now (Dec 2024), [baseline repo](https://github.com/aws-samples/aws-genai-llm-chatbot) can't be deployed to Jakarta region.
 
 Necessary changes, including in the dependency libraries, are made to make it deployable in Jakarta region.
 
 ![jakarta](image/changes/01-deployable-in-ap-southeast-3.jpg)
 
 ## Model Selection
-As of now (Dec 2024), in [original repo](https://github.com/aws-samples/aws-genai-llm-chatbot) support several Sagemaker model deployments. but it's not actively maintained. i.e. Llama 2 is supported, but Llama 3 can't be deploy.
+As of now (Dec 2024), in [baseline repo](https://github.com/aws-samples/aws-genai-llm-chatbot) support several Sagemaker model deployments. but it's not actively maintained. i.e. Llama 2 is supported, but Llama 3 can't be deploy.
 Any new models to be added, code change needed in this [file](https://github.com/aws-samples/aws-genai-llm-chatbot/blob/main/lib/models/index.ts).
 
 In order to make the solution able to adapt new models easily we decide to externalize both HuggingFace model configurations and Sagemaker JumpStart model configurations to `config.json` located in `aws-genai-llm-chatbot/bin`
@@ -77,7 +77,7 @@ Remarks:
 
 
 ## Prompt Template Management
-As of now (Dec 2024), in [original repo](https://github.com/aws-samples/aws-genai-llm-chatbot), template for `prompt`, `prompt Q&A`, and `prompt condensed Q&A` are hardcoded for every model adapter.
+As of now (Dec 2024), in [baseline repo](https://github.com/aws-samples/aws-genai-llm-chatbot), template for `prompt`, `prompt Q&A`, and `prompt condensed Q&A` are hardcoded for every model adapter.
 
 We improve the implementation so admin are allows to configure those templates from DynamoDB. Prompt templates update are applied without any code rebuilding and redeployment.
 
@@ -85,11 +85,13 @@ We improve the implementation so admin are allows to configure those templates f
 
 ## New Endpoint for Gen AI API to be Consumed by Client App
 Existing endpoint does not separate between Admin UI and user UI so only have single endpoint that enforce the use Cognito user pool for authentication and use of Amplify for client application.
-We are adding a second endpoint that can be utilize by user who wants to have their own authentication mechanism for user UI
+We are adding a second endpoint that can be utilized by user who wants to have their own authentication mechanism for user UI
 The new endpoint is using common REST API that currently is easier to adopt. The trade off is this solution will not support streaming output
 
-## New Client Application
-We are adding reference implementation client applications that will connect to the new endpoint.
+## New Client Application Chat Widget
+We are adding reference implementation client app chat widget that will connect to the new endpoint.
+
+![client-app](./image/changes/04-new-client-app-example.jpg)
 
 ## Architecture Changes
 
