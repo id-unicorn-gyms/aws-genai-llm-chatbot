@@ -19,7 +19,7 @@ We are adding reference implementation client applications that will connect to 
 ## Architecture Changes ##
 
 In the following diagram, new components are light red rectangles, changed components are light green rectangles and existing components are using white rectangle 
-![Architecture Diagram](./Image/General%20TAP-unicorn-Page-1.drawio.png)
+![Architecture Diagram](./image/General%20TAP-unicorn-Page-1.drawio.png)
 
 UI for enduser will connect to Load Balancer that will forward to two Lambda, Lambda Incoming and Lambda Outgoing). Lambda incoming will connect to SNS then SQS, bypassing the Appsync and Lambda Resolver for Admin UI. This changes enables clent app to use other authentication than Cognito user pool.
 Existing lambda langchain is modified to externalize the configuration of Sagemaker Jumpstart and HuggingFace models to configuration files.
