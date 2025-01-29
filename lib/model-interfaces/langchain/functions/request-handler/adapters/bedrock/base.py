@@ -29,11 +29,10 @@ def get_guardrails() -> dict:
 class BedrockChatAdapter(ModelAdapter):
     def __init__(self, model_id, *args, **kwargs):
         self.model_id = model_id
-
         super().__init__(*args, **kwargs)
 
     def get_qa_prompt(self):
-        system_prompt = (
+        system_prompt = self.prompt_templates["prompt_qna"] if self.prompt_templates["prompt_qna"] else (
             "Use the following pieces of context to answer the question at the end."
             " If you don't know the answer, just say that you don't know, "
             "don't try to make up an answer. \n\n{context}"
@@ -47,17 +46,15 @@ class BedrockChatAdapter(ModelAdapter):
         )
 
     def get_prompt(self):
+        system_prompt = self.prompt_templates["prompt"] if self.prompt_templates["prompt"] else (
+            "The following is a friendly conversation between "
+            "a human and an AI."
+            "If the AI does not know the answer to a question, it "
+            "truthfully says it does not know."
+        )
         prompt_template = ChatPromptTemplate(
             [
-                (
-                    "system",
-                    (
-                        "The following is a friendly conversation between "
-                        "a human and an AI."
-                        "If the AI does not know the answer to a question, it "
-                        "truthfully says it does not know."
-                    ),
-                ),
+                ("system", system_prompt),
                 MessagesPlaceholder(variable_name="chat_history"),
                 ("human", "{input}"),
             ]
@@ -66,7 +63,8 @@ class BedrockChatAdapter(ModelAdapter):
         return prompt_template
 
     def get_condense_question_prompt(self):
-        contextualize_q_system_prompt = (
+        contextualize_q_system_prompt = self.prompt_templates["prompt_condensed_qna"] \
+            if self.prompt_templates["prompt_condensed_qna"] else (
             "Given the following conversation and a follow up"
             " question, rephrase the follow up question to be a standalone question."
         )

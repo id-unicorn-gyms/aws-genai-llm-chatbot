@@ -7,10 +7,11 @@ class AdapterRegistry:
         # Keys are compiled regular expressions
         # Values are model IDs
         self.registry = {}
+        self.prompt_templates = {}
 
-    def register(self, regex, model_id):
+    def register(self, regex, adapter):
         # Compiles the regex and stores it in the registry
-        self.registry[re.compile(regex)] = model_id
+        self.registry[re.compile(regex)] = adapter
 
     def get_adapter(self, model):
         # Iterates over the registered regexes

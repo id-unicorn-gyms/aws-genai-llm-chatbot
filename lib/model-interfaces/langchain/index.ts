@@ -19,6 +19,7 @@ interface LangChainInterfaceProps {
   readonly ragEngines?: RagEngines;
   readonly messagesTopic: sns.Topic;
   readonly sessionsTable: dynamodb.Table;
+  readonly promptTemplatesTable: dynamodb.Table;
   readonly byUserIdIndex: string;
 }
 
@@ -50,6 +51,7 @@ export class LangChainInterface extends Construct {
         ...props.shared.defaultEnvironmentVariables,
         CONFIG_PARAMETER_NAME: props.shared.configParameter.parameterName,
         SESSIONS_TABLE_NAME: props.sessionsTable.tableName,
+        PROMPT_TEMPLATES_TABLE_NAME: props.promptTemplatesTable.tableName,
         SESSIONS_BY_USER_ID_INDEX_NAME: props.byUserIdIndex,
         API_KEYS_SECRETS_ARN: props.shared.apiKeysSecret.secretArn,
         MESSAGES_TOPIC_ARN: props.messagesTopic.topicArn,
@@ -212,6 +214,7 @@ export class LangChainInterface extends Construct {
     }
 
     props.sessionsTable.grantReadWriteData(requestHandler);
+    props.promptTemplatesTable.grantReadData(requestHandler);
     props.messagesTopic.grantPublish(requestHandler);
     if (props.shared.kmsKey && requestHandler.role) {
       props.shared.kmsKey.grantEncrypt(requestHandler.role);

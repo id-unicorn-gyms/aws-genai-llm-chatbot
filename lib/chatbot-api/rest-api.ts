@@ -22,6 +22,7 @@ export interface ApiResolversProps {
   readonly ragEngines?: RagEngines;
   readonly userPool: cognito.UserPool;
   readonly sessionsTable: dynamodb.Table;
+  readonly promptTemplatesTable: dynamodb.Table;
   readonly byUserIdIndex: string;
   readonly filesBucket: s3.Bucket;
   readonly userFeedbackBucket: s3.Bucket;
@@ -69,6 +70,7 @@ export class ApiResolvers extends Construct {
             props.shared.xOriginVerifySecret.secretArn,
           API_KEYS_SECRETS_ARN: props.shared.apiKeysSecret.secretArn,
           SESSIONS_TABLE_NAME: props.sessionsTable.tableName,
+          PROMPT_TEMPLATES_TABLE_NAME: props.promptTemplatesTable.tableName,
           SESSIONS_BY_USER_ID_INDEX_NAME: props.byUserIdIndex,
           USER_FEEDBACK_BUCKET_NAME: props.userFeedbackBucket?.bucketName ?? "",
           UPLOAD_BUCKET_NAME: props.ragEngines?.uploadBucket?.bucketName ?? "",
@@ -299,6 +301,7 @@ export class ApiResolvers extends Construct {
       props.shared.configParameter.grantRead(apiHandler);
       props.modelsParameter.grantRead(apiHandler);
       props.sessionsTable.grantReadWriteData(apiHandler);
+      props.promptTemplatesTable.grantReadWriteData(apiHandler);
       props.userFeedbackBucket.grantReadWrite(apiHandler);
       props.filesBucket.grantReadWrite(apiHandler);
       props.ragEngines?.uploadBucket.grantReadWrite(apiHandler);

@@ -82,13 +82,13 @@ class SahabatAiLlama3InstructAdapter(ModelAdapter):
         )
 
     def get_prompt(self):
-        return Llama3PromptTemplate
+        return self._prompt_template_with_default(Llama3PromptTemplate)
 
     def get_qa_prompt(self):
-        return Llama3QAPromptTemplate
+        return self._prompt_qna_template_with_default(Llama3QAPromptTemplate)
 
     def get_condense_question_prompt(self):
-        return Llama3CondensedQAPromptTemplate
+        return self._prompt_condensed_qna_template_with_default(Llama3CondensedQAPromptTemplate)
 
 
 registry.register(r"(?i)sagemaker\.GoToCompany-*", SahabatAiLlama3InstructAdapter)

@@ -21,6 +21,7 @@ interface IdeficsInterfaceProps {
   readonly config: SystemConfig;
   readonly messagesTopic: sns.Topic;
   readonly sessionsTable: dynamodb.Table;
+  readonly promptTemplatesTable: dynamodb.Table;
   readonly byUserIdIndex: string;
   readonly chatbotFilesBucket: s3.Bucket;
   readonly createPrivateGateway: boolean;
@@ -68,6 +69,7 @@ export class IdeficsInterface extends Construct {
           ...props.shared.defaultEnvironmentVariables,
           CONFIG_PARAMETER_NAME: props.shared.configParameter.parameterName,
           SESSIONS_TABLE_NAME: props.sessionsTable.tableName,
+          PROMPT_TEMPLATES_TABLE_NAME: props.promptTemplatesTable.tableName,
           SESSIONS_BY_USER_ID_INDEX_NAME: props.byUserIdIndex,
           MESSAGES_TOPIC_ARN: props.messagesTopic.topicArn,
           CHATBOT_FILES_BUCKET_NAME: props.chatbotFilesBucket.bucketName,
@@ -78,6 +80,7 @@ export class IdeficsInterface extends Construct {
 
     props.chatbotFilesBucket.grantRead(requestHandler);
     props.sessionsTable.grantReadWriteData(requestHandler);
+    props.promptTemplatesTable.grantReadData(requestHandler);
     props.messagesTopic.grantPublish(requestHandler);
     if (props.shared.kmsKey && requestHandler.role) {
       props.shared.kmsKey.grantEncrypt(requestHandler.role);

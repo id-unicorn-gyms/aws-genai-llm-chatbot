@@ -2,6 +2,8 @@ import os
 import json
 import uuid
 from datetime import datetime
+
+from genai_core.prompt.template import PromptTemplateRetriever
 from genai_core.registry import registry
 from aws_lambda_powertools import Logger, Tracer
 from aws_lambda_powertools.utilities import parameters
@@ -11,6 +13,7 @@ from aws_lambda_powertools.utilities.data_classes.sqs_event import SQSRecord
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
 import adapters  # noqa: F401 Needed to register the adapters
+from genai_core.utils.dynamodb_reader import DynamoDBReader
 from genai_core.utils.websocket import send_to_client
 from genai_core.types import ChatbotAction
 
@@ -78,6 +81,7 @@ def handle_heartbeat(record):
     )
 
 
+
 def handle_run(record):
     user_id = record["userId"]
     data = record["data"]
@@ -96,13 +100,14 @@ def handle_run(record):
     adapter.on_llm_new_token = lambda *args, **kwargs: on_llm_new_token(
         user_id, session_id, *args, **kwargs
     )
-
+    prompt_tmpl_retriever = PromptTemplateRetriever(os.environ["PROMPT_TEMPLATES_TABLE_NAME"])
     model = adapter(
         model_id=model_id,
         mode=mode,
         session_id=session_id,
         user_id=user_id,
         model_kwargs=data.get("modelKwargs", {}),
+        prompt_templates=prompt_tmpl_retriever.get_templates(provider, model_id)
     )
 
     response = model.run(
