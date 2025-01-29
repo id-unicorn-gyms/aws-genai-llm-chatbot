@@ -92,3 +92,4 @@ class SahabatAiLlama3InstructAdapter(ModelAdapter):
 
 
 registry.register(r"(?i)sagemaker\.GoToCompany-*", SahabatAiLlama3InstructAdapter)
+registry.register(r"^sagemaker\.\S+-Distill-Llama-[0-9]+B", SahabatAiLlama3InstructAdapter)

@@ -91,4 +91,3 @@ class SMJumpstartLlama3InstructAdapter(ModelAdapter):
 
 # Register the adapter
 registry.register(r"(?i)sagemaker\.meta-LLama3-1.*\d+b.*instruct.*", SMJumpstartLlama3InstructAdapter)
-registry.register(r"^sagemaker\.\S+-Distill-Llama-[0-9]+B", SMJumpstartLlama3InstructAdapter)
