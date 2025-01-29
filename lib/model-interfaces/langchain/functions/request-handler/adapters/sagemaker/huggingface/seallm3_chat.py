@@ -79,7 +79,7 @@ class SeaLlmInstructContentHandler(LLMContentHandler):
         out_str = output.read().decode("utf-8")
         logger.info(f"output: {out_str}")
         response_json = json.loads(out_str)
-        return response_json[0]["generated_text"]
+        return response_json[0]["generated_text"].split("</s>")[0]
 
 
 content_handler = SeaLlmInstructContentHandler()
